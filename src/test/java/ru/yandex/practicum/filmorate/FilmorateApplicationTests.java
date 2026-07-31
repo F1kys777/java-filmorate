@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneId;
 

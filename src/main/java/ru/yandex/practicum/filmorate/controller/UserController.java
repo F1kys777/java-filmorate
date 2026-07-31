@@ -31,7 +31,7 @@ public class UserController {
         log.debug("Запрос на создание пользователя: {}", user);
         validator.userValidation(user.getEmail(), user.getLogin(), user.getBirthday());
         user.setId(getNextId());
-        if(user.getName() == null || user.getName().isBlank()) {
+        if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
             log.debug("Имя пользователя установлено равным логину: {}", user.getLogin());
         }

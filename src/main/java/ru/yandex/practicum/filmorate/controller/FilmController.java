@@ -49,39 +49,23 @@ public class FilmController {
             log.debug("Найден существующий фильм с id {}", oldFilmData.getId());
 
             if (!(newFilmData.getDescription() == null)) {
-                if (oldFilmData.getDescription().equals(newFilmData.getDescription())) {
-                    log.warn("Новое описание фильма совпадает со старым для id {}", oldFilmData.getId());
-                    throw new DuplicatedDataException("Новое описание фильма совпадает со старым");
-                }
                 validator.descriptionLength(newFilmData.getDescription());
                 oldFilmData.setDescription(newFilmData.getDescription());
                 log.debug("Описание фильма {} обновлено", oldFilmData.getId());
             }
 
             if (!(newFilmData.getName() == null)) {
-                if (oldFilmData.getName().equals(newFilmData.getName())) {
-                    log.warn("Новое название фильма совпадает со старым для id {}", oldFilmData.getId());
-                    throw new DuplicatedDataException("Новое название фильма совпадает со старым");
-                }
                 oldFilmData.setName(newFilmData.getName());
                 log.debug("Название фильма {} обновлено", oldFilmData.getId());
             }
 
             if (!(newFilmData.getReleaseDate() == null)) {
-                if (oldFilmData.getReleaseDate().equals(newFilmData.getReleaseDate())) {
-                    log.warn("Новая дата выхода совпадает со старой для id {}", oldFilmData.getId());
-                    throw new DuplicatedDataException("Новая дата выхода совпадает со старой");
-                }
                 validator.filmDate(newFilmData.getReleaseDate());
                 oldFilmData.setReleaseDate(newFilmData.getReleaseDate());
                 log.debug("Дата выхода фильма {} обновлена", oldFilmData.getId());
             }
 
             if (!(newFilmData.getDuration() == null)) {
-                if (oldFilmData.getDuration().equals(newFilmData.getDuration())) {
-                    log.warn("Новая продолжительность совпадает со старой для id {}", oldFilmData.getId());
-                    throw new DuplicatedDataException("Новая продолжительность совпадает с уже установленной!");
-                }
                 validator.positiveCheck(newFilmData.getDuration());
                 oldFilmData.setDuration(newFilmData.getDuration());
                 log.debug("Продолжительность фильма {} обновлена", oldFilmData.getId());

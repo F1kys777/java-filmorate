@@ -6,9 +6,9 @@ import java.time.LocalDate;
 
 @Data
 public class User {
-    Long id;
-    String name;
-    String email;
-    String login;
-    LocalDate birthday;
+    private Long id;
+    private String name;
+    private String email;
+    private String login;
+    private LocalDate birthday;
 }

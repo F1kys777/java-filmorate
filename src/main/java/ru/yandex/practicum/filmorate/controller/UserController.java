@@ -46,7 +46,7 @@ public class UserController {
     @PutMapping
     public User update(@RequestBody User newUserData) {
         log.debug("Запрос на обновление пользователя: {}", newUserData);
-        if (!(newUserData.getId() == null || users.containsKey(newUserData.getId()))) {
+        if ((!(newUserData.getEmail() == null)) || users.containsKey(newUserData.getId())) {
             User oldUserData = users.get(newUserData.getId());
             log.debug("Найден существующий пользователь с id {}", oldUserData.getId());
             if (!(newUserData.getEmail() == null)) {

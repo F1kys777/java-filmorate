@@ -131,7 +131,7 @@ class FilmorateApplicationTests {
         LocalDate future = LocalDate.now(ZoneId.of("Europe/Moscow")).plusDays(1);
         assertThrows(ValidationException.class, () -> validator.birthDayCheck(future));
     }
-    
+
     @Test
     void filmValidation_valid_doesNotThrow() {
         assertDoesNotThrow(() -> validator.filmValidation(

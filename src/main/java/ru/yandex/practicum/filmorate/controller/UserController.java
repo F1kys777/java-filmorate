@@ -33,7 +33,6 @@ public class UserController {
             user.setName(user.getLogin());
             log.debug("Имя пользователя установлено равным логину: {}", user.getLogin());
         }
-        users.put(user.getId(), user);
         boolean emailExists = users.values().stream()
                 .anyMatch(existing -> existing.getEmail().equalsIgnoreCase(user.getEmail()));
         if (emailExists) {

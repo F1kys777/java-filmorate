@@ -16,7 +16,7 @@ import java.util.Map;
 @RequestMapping("/films")
 @Slf4j
 public class FilmController {
-    private final Map<Long, Film> films = new HashMap<>();
+    private final Map<Long, Film> films = new HashMap<>(); //ПЕРЕНЕСЕНО!!!!!!!!!
     private final Validator validator = new Validator();
 
     @GetMapping
@@ -31,7 +31,7 @@ public class FilmController {
         validator.filmValidation(film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration());
         film.setId(getNextId());
 
-        films.put(film.getId(), film);
+        films.put(film.getId(), film);//ПЕРЕНЕСЕНО!!!!!!!!!
         log.info("Фильм с id {} успешно создан", film.getId());
         return film;
     }

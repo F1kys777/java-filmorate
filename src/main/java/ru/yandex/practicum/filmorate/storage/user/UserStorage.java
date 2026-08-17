@@ -15,6 +15,6 @@ public interface UserStorage {
     User getUserById(long userId);
 
     Collection<User> getAllUsers();
-    
+
     boolean containsUser(long userId);
 }

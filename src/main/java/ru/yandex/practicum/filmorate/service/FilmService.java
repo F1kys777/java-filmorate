@@ -2,12 +2,14 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 import ru.yandex.practicum.filmorate.Validator;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 
 import java.util.*;
@@ -18,13 +20,16 @@ import java.util.stream.Collectors;
 public class FilmService {
     FilmStorage filmStorage;
     private final Validator validator;
+    UserStorage userStorage;
 
-    public FilmService(FilmStorage filmStorage, Validator validator) {
+    public FilmService(FilmStorage filmStorage, Validator validator, UserStorage userStorage) {
         this.filmStorage = filmStorage;
         this.validator = validator;
+        this.userStorage = userStorage;
     }
 
     public Collection<Film> findAll() {
+        log.info("Получение списка всех фильмов");
         return filmStorage.getAllFilms();
     }
 
@@ -33,11 +38,14 @@ public class FilmService {
         if (film == null) {
             throw new NotFoundException("Фильм с id=" + filmId + " не найден");
         }
-        return filmStorage.getFilmById(filmId);
+        log.info("Фильм {} с id {} успешно получен", film, filmId);
+        return film;
     }
 
     public Film create(Film film) {
+        validator.filmValidation(film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration());
         filmStorage.addFilm(film);
+        log.info("Фильм {} с id {} успешно создан", film, film.getId());
         return film;
     }
 
@@ -82,15 +90,36 @@ public class FilmService {
 
     public void addLike(long filmId, long userId) {
         Film film = filmStorage.getFilmById(filmId);
-        film.getLikes().add(userId); // ДОБАВИТЬ ПРОВЕРКУ И ВАЛИДАЦИЮ ЧТО ФИЛЬМА ЧТО ПОЛЬЗОВАТЕЛЯ
+        if (film == null) {
+            throw new NotFoundException("Фильм с id=" + filmId + " не найден");
+        }
+        User user = userStorage.getUserById(userId);
+        if (user == null) {
+            throw new NotFoundException("Пользователь с id=" + userId + " не найден");
+        }
+        if (film.getLikes().contains(userId)) {
+            throw new ValidationException("Пользователь уже ставил лайк этому фильму");
+        }
+        log.info("Фильм с id {} получил лайк от пользователя {}", film, userId);
+        film.getLikes().add(userId);
     }
 
     public void removeLike(long filmId, long userId) {
         Film film = filmStorage.getFilmById(filmId);
-        film.getLikes().remove(userId); // ДОБАВИТЬ ПРОВЕРКУ И ВАЛИДАЦИЮ ЧТО ФИЛЬМА ЧТО ПОЛЬЗОВАТЕЛЯ
+        if (film == null) {
+            throw new NotFoundException("Фильм с id=" + filmId + " не найден");
+        }
+        User user = userStorage.getUserById(userId);
+        if (user == null) {
+            throw new NotFoundException("Пользователь с id=" + userId + " не найден");
+        }
+        log.info("Пользователя с id {} удалил лайк с фильма {}", userId, filmId);
+        film.getLikes().remove(userId);
     }
 
     public List<Film> getPopularFilms(int count) {
+        validator.filmCountValidation(count);
+        log.info("Получение списка из {} популярных фильмов", count);
         return filmStorage.getAllFilms().stream()
                 .sorted(Comparator.comparingInt((Film f) -> f.getLikes().size()).reversed())
                 .limit(count)

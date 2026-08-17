@@ -3,16 +3,13 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.Validator;
+import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -26,6 +23,7 @@ public class UserService {
     }
 
     public Collection<User> findAll() {
+        log.info("Получение списка всех пользователей");
         return userStorage.getAllUsers();
     }
 
@@ -34,19 +32,17 @@ public class UserService {
         if (user == null) {
             throw new NotFoundException("Пользователь с id=" + userId + " не найден");
         }
-        return userStorage.getUserById(userId);
+        log.info("Пользователь {} с id {} успешно получен", user, userId);
+        return user;
     }
 
     public User create(User user) {
+        validator.userValidation(user.getEmail().toLowerCase(), user.getLogin(), user.getBirthday());
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
             log.debug("Имя пользователя установлено равным логину: {}", user.getLogin());
         }
-        boolean emailExists = userStorage.getAllUsers().stream()
-                .anyMatch(existing -> existing.getEmail().equalsIgnoreCase(user.getEmail()));
-        if (emailExists) {
-            throw new ValidationException("Этот имейл уже используется");
-        }
+        validator.emailExists(userStorage, user);
         userStorage.addUser(user);
         log.info("Пользователь с id {}, email {} успешно создан", user.getId(), user.getEmail());
         return user;
@@ -54,10 +50,16 @@ public class UserService {
 
     public User update(User newUserData) {
         log.debug("Запрос на обновление пользователя: {}", newUserData);
-        if ((!(newUserData.getEmail() == null)) || userStorage.containsUser(newUserData.getId())) {
+        if (newUserData.getId() == null) {
+            throw new ConditionsNotMetException("Id должен быть указан");
+        }
+        if (userStorage.containsUser(newUserData.getId())) {
             User oldUserData = userStorage.getUserById(newUserData.getId());
             log.debug("Найден существующий пользователь с id {}", oldUserData.getId());
             if (!(newUserData.getEmail() == null)) {
+                if(!(newUserData.getEmail().toLowerCase().equals(oldUserData.getEmail()))){
+                    validator.emailExists(userStorage, newUserData);
+                }
                 validator.emailCheck(newUserData.getEmail());
                 oldUserData.setEmail(newUserData.getEmail());
                 log.debug("Email пользователя {} обновлён на {}", oldUserData.getId(), newUserData.getEmail());
@@ -87,33 +89,42 @@ public class UserService {
     }
 
     public void addFriend(long userId, long friendId) {
-        User user = userStorage.getUserById(userId);
-        User friend = userStorage.getUserById(friendId);
+        log.debug("Добавление в друзья: userId={}, friendId={}", userId, friendId);
+        User user = getUserById(userId);
+        User friend = getUserById(friendId);
         user.getFriends().add(friendId);
         friend.getFriends().add(userId);
     }
 
     public void removeFriend(long userId, long friendId) {
-        User user = userStorage.getUserById(userId);
-        User friend = userStorage.getUserById(friendId);
+        log.debug("Удаление из друзей: userId={}, friendId={}", userId, friendId);
+        User user = getUserById(userId);
+        User friend = getUserById(friendId);
         user.getFriends().remove(friendId);
         friend.getFriends().remove(userId);
     }
 
-    public Set<Long> getFriends(long userId) {
-        User user = userStorage.getUserById(userId);
-        return user.getFriends();
+    public List<User> getFriends(long userId) {
+        User user = getUserById(userId);
+        List<User> friends = new ArrayList<>();
+        for (Long friendId : user.getFriends()) {
+            User friend = getUserById(friendId);
+            friends.add(friend);
+        }
+        log.info("Получение друзей пользователя userId={}", userId);
+        return friends;
     }
 
-    public Set<Long> getCommonFriends(long userId, long otherId) {
-        User user = userStorage.getUserById(userId);
-        User friend = userStorage.getUserById(otherId);
-        Set<Long> mutualFriends = new HashSet<>();
-        for (Long id : user.getFriends()) {
-            if (friend.getFriends().contains(id)) {
-                mutualFriends.add(id);
+    public List<User> getCommonFriends(long userId, long otherId) {
+        User user = getUserById(userId);
+        User other = getUserById(otherId);
+        List<User> mutualFriends = new ArrayList<>();
+        for (Long friendId : user.getFriends()) {
+            if (other.getFriends().contains(friendId)) {
+                mutualFriends.add(getUserById(friendId));
             }
         }
+        log.info("Получение общих друзей пользователей userId={} и {}", userId, otherId);
         return mutualFriends;
     }
 }

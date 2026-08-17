@@ -17,7 +17,7 @@ public class InMemoryUserStorage implements UserStorage {
     public void addUser(User user) {
         long userId = getNextId();
         user.setId(userId);
-        user.setEmail(user.getEmail().toLowerCase());
+        user.setEmail(user.getEmail());
         users.put(userId, user);
         log.debug("Добавление User {}, установлен id {}", user, userId);
     }

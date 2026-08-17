@@ -36,7 +36,7 @@ public class UserService {
     }
 
     public User create(User user) {
-        validator.userValidation(user.getEmail().toLowerCase(), user.getLogin(), user.getBirthday());
+        validator.userValidation(user.getEmail(), user.getLogin(), user.getBirthday());
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
             log.debug("Имя пользователя установлено равным логину: {}", user.getLogin());
@@ -56,7 +56,7 @@ public class UserService {
             User oldUserData = userStorage.getUserById(newUserData.getId());
             log.debug("Найден существующий пользователь с id {}", oldUserData.getId());
             if (!(newUserData.getEmail() == null)) {
-                if (!(newUserData.getEmail().toLowerCase().equals(oldUserData.getEmail()))) {
+                if (!(newUserData.getEmail().equals(oldUserData.getEmail()))) {
                     validator.emailExists(userStorage, newUserData);
                 }
                 validator.emailCheck(newUserData.getEmail());

@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.Validator;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -57,7 +56,7 @@ public class UserService {
             User oldUserData = userStorage.getUserById(newUserData.getId());
             log.debug("Найден существующий пользователь с id {}", oldUserData.getId());
             if (!(newUserData.getEmail() == null)) {
-                if(!(newUserData.getEmail().toLowerCase().equals(oldUserData.getEmail()))){
+                if (!(newUserData.getEmail().toLowerCase().equals(oldUserData.getEmail()))) {
                     validator.emailExists(userStorage, newUserData);
                 }
                 validator.emailCheck(newUserData.getEmail());

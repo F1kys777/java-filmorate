@@ -68,7 +68,7 @@ public class Validator {
         }
     }
 
-    public boolean emailExists(UserStorage userStorage, User user){
+    public boolean emailExists(UserStorage userStorage, User user) {
         boolean emailExists = userStorage.getAllUsers().stream()
                 .anyMatch(existing -> existing.getEmail().equalsIgnoreCase(user.getEmail()));
         if (emailExists) {

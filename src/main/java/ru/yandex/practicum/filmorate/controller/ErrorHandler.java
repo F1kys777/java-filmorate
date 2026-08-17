@@ -35,7 +35,7 @@ public class ErrorHandler {
         log.error("Непредвиденная ошибка: ", e);
         return new ErrorResponse("Произошла непредвиденная ошибка.");
     }
-    
+
     @ExceptionHandler(ConditionsNotMetException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleConditionsNotMet(ConditionsNotMetException e) {

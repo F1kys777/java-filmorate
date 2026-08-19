@@ -9,11 +9,12 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class UserService {
-    UserStorage userStorage;
+    private final UserStorage userStorage;
     private final Validator validator;
 
     public UserService(UserStorage userStorage, Validator validator) {
@@ -27,12 +28,9 @@ public class UserService {
     }
 
     public User getUserById(long userId) {
-        User user = userStorage.getUserById(userId);
-        if (user == null) {
-            throw new NotFoundException("Пользователь с id=" + userId + " не найден");
-        }
-        log.info("Пользователь {} с id {} успешно получен", user, userId);
-        return user;
+        log.info("Поиск пользователя с id {} ", userId);
+        return userStorage.getUserById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
     }
 
     public User create(User user) {
@@ -53,9 +51,10 @@ public class UserService {
             throw new ConditionsNotMetException("Id должен быть указан");
         }
         if (userStorage.containsUser(newUserData.getId())) {
-            User oldUserData = userStorage.getUserById(newUserData.getId());
+            User oldUserData = userStorage.getUserById(newUserData.getId())
+                    .orElseThrow(() -> new NotFoundException("Пользователь id=" + newUserData.getId() + " не найден"));
             log.debug("Найден существующий пользователь с id {}", oldUserData.getId());
-            if (!(newUserData.getEmail() == null)) {
+            if (newUserData.getEmail() != null) {
                 if (!(newUserData.getEmail().equals(oldUserData.getEmail()))) {
                     validator.emailExists(userStorage, newUserData);
                 }
@@ -64,18 +63,18 @@ public class UserService {
                 log.debug("Email пользователя {} обновлён на {}", oldUserData.getId(), newUserData.getEmail());
             }
 
-            if (!(newUserData.getName() == null)) {
+            if (newUserData.getName() != null) {
                 oldUserData.setName(newUserData.getName());
                 log.debug("Имя {} обновлено на {}", oldUserData.getId(), newUserData.getName());
             }
 
-            if (!(newUserData.getLogin() == null)) {
+            if (newUserData.getLogin() != null) {
                 validator.loginCheck(newUserData.getLogin());
                 oldUserData.setLogin(newUserData.getLogin());
                 log.debug("Логин {} обновлён на {}", oldUserData.getId(), newUserData.getLogin());
             }
 
-            if (!(newUserData.getBirthday() == null)) {
+            if (newUserData.getBirthday() != null) {
                 validator.birthDayCheck(newUserData.getBirthday());
                 oldUserData.setBirthday(newUserData.getBirthday());
                 log.debug("Дата рождения {} обновлена на {}", oldUserData.getId(), newUserData.getBirthday());
@@ -105,24 +104,20 @@ public class UserService {
 
     public List<User> getFriends(long userId) {
         User user = getUserById(userId);
-        List<User> friends = new ArrayList<>();
-        for (Long friendId : user.getFriends()) {
-            User friend = getUserById(friendId);
-            friends.add(friend);
-        }
-        log.info("Получение друзей пользователя userId={}", userId);
-        return friends;
+        return user.getFriends().stream()
+                .map(this::getUserById)
+                .collect(Collectors.toList());
     }
 
     public List<User> getCommonFriends(long userId, long otherId) {
         User user = getUserById(userId);
         User other = getUserById(otherId);
-        List<User> mutualFriends = new ArrayList<>();
-        for (Long friendId : user.getFriends()) {
-            if (other.getFriends().contains(friendId)) {
-                mutualFriends.add(getUserById(friendId));
-            }
-        }
+
+        List<User> mutualFriends = user.getFriends().stream()
+                .filter(other.getFriends()::contains)
+                .map(this::getUserById)
+                .collect(Collectors.toList());
+
         log.info("Получение общих друзей пользователей userId={} и {}", userId, otherId);
         return mutualFriends;
     }

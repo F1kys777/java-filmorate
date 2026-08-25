@@ -1,12 +1,16 @@
 package ru.yandex.practicum.filmorate;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 
+@Component
 @Slf4j
 public class Validator {
     private static final LocalDate correctDate = LocalDate.of(1895, 12, 28);
@@ -22,6 +26,12 @@ public class Validator {
         emailCheck(email);
         loginCheck(login);
         birthDayCheck(birthday);
+    }
+
+    public void filmCountValidation(int count) {
+        if (count <= 0) {
+            throw new ValidationException("Значение не может быть ноль или отрицательным");
+        }
     }
 
     public void emptyCheck(String value) {
@@ -58,7 +68,19 @@ public class Validator {
         }
     }
 
+    public boolean emailExists(UserStorage userStorage, User user) {
+        boolean emailExists = userStorage.getAllUsers().stream()
+                .anyMatch(existing -> existing.getEmail().equalsIgnoreCase(user.getEmail()));
+        if (emailExists) {
+            throw new ValidationException("Этот имейл уже используется");
+        }
+        return false;
+    }
+
     public void filmDate(LocalDate releaseDate) {
+        if (releaseDate == null) {
+            throw new ValidationException("Дата релиза должна быть указана");
+        }
         if (correctDate.isAfter(releaseDate)) {
             log.warn("Ошибка валидации: дата создания {} ранее 28.12.1895", releaseDate);
             throw new ValidationException("Дата создания фильма не может быть раньше 28.12.1895!");
@@ -66,6 +88,9 @@ public class Validator {
     }
 
     public void birthDayCheck(LocalDate birthday) {
+        if (birthday == null) {
+            throw new ValidationException("Дата рождения должна быть указана");
+        }
         Instant instant = Instant.now();
         LocalDate localDate = instant.atZone(ZoneId.of("Europe/Moscow")).toLocalDate();
 

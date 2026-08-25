@@ -1,2 +1,2 @@
 # java-filmorate
-Template repository for Filmorate project.
+![ER диаграмма](C:\Users\Fikys\Desktop\ДЛЯ-СДАЧИ-РАБОТ\10Sprint\java-filmorate\ER_diagram_png.drawio.png)

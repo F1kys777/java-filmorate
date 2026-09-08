@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS mpa_ratings (
     id INTEGER PRIMARY KEY,
-    name VARCHAR(10) NOT NULL
+    code VARCHAR(10) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS films (
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS film_genre (
 
 CREATE INDEX IF NOT EXISTS idx_film_genre_film_id ON film_genre(film_id);
 
-CREATE TABLE IF NOT EXISTS likes (
+CREATE TABLE IF NOT EXISTS film_likes (
     film_id BIGINT,
     user_id BIGINT,
     PRIMARY KEY (film_id, user_id),
@@ -44,15 +44,18 @@ CREATE TABLE IF NOT EXISTS likes (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_likes_film_id ON likes(film_id);
+CREATE INDEX IF NOT EXISTS idx_film_likes_film_id ON film_likes(film_id);
+CREATE INDEX IF NOT EXISTS idx_film_likes_user_id ON film_likes(user_id);
 
-CREATE TABLE IF NOT EXISTS friends (
+CREATE TABLE IF NOT EXISTS friendship (
     user_id BIGINT,
     friend_id BIGINT,
+    status VARCHAR(10) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'CONFIRMED')),
     PRIMARY KEY (user_id, friend_id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE,
     CHECK (user_id != friend_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_friends_user_id ON friends(user_id);
+CREATE INDEX IF NOT EXISTS idx_friendship_user_id ON friendship(user_id);
+CREATE INDEX IF NOT EXISTS idx_friendship_friend_id ON friendship(friend_id);

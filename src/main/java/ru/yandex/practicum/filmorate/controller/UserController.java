@@ -2,6 +2,9 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dto.NewUserRequest;
+import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
+import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 import java.util.Collection;
@@ -19,25 +22,25 @@ public class UserController {
     }
 
     @GetMapping
-    public Collection<User> findAll() {
+    public Collection<UserDto> findAll() {
         log.debug("Запрос на получение всех пользователей");
         return userService.findAll();
     }
 
     @PostMapping
-    public User create(@RequestBody User user) {
-        log.debug("Создание пользователя с email {}", user.getEmail());
-        return userService.create(user);
+    public UserDto create(@RequestBody NewUserRequest userRequest) {
+        log.debug("Создание пользователя с email {}", userRequest.getEmail());
+        return userService.create(userRequest);
     }
 
-    @PutMapping
-    public User update(@RequestBody User newUserData) {
-        log.debug("Изменение пользователя с email {} и id {}", newUserData.getEmail(), newUserData.getId());
-        return userService.update(newUserData);
+    @PutMapping("/{userId}")
+    public UserDto update(@PathVariable("userId") long userId, @RequestBody UpdateUserRequest request) {
+        log.debug("Изменение пользователя с email {} и id {}", request.getEmail(), userId);
+        return userService.update(userId, request);
     }
 
     @GetMapping("/{id}")
-    public User findById(@PathVariable long id) {
+    public UserDto findById(@PathVariable long id) {
         log.debug("Поиск пользователя с id {}", id);
         return userService.getUserById(id);
     }

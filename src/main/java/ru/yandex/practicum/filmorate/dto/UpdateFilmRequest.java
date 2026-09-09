@@ -12,7 +12,7 @@ public class UpdateFilmRequest {
     private String description;
     private LocalDate releaseDate;
     private Integer duration;
-    private Set<Genre> genres;
+    private Set<Long> genreIds;
     private Long mpaRatingId;
 
     public boolean hasName() {
@@ -28,14 +28,14 @@ public class UpdateFilmRequest {
     }
 
     public boolean hasReleaseDate() {
-        return releaseDate != null;
+        return ! (releaseDate == null);
     }
 
-    public boolean hasGenres() {
-        return ! (genres == null);
+    public boolean hasGenreIds() {
+        return ! (genreIds == null);
     }
 
     public boolean hasMpaRatingId() {
-        return mpaRatingId != null;
+        return! (mpaRatingId == null);
     }
 }

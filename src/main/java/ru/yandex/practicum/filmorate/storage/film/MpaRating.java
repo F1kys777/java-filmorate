@@ -12,8 +12,8 @@ public enum MpaRating {
     R(4, "R", "R — лицам до 17 лет просматривать фильм можно только в присутствии взрослого"),
     NC_17(5, "NC-17", "NC-17 — лицам до 18 лет просмотр запрещён");
 
-    private final int id;
-    private final String code;      // короткое имя
+    private final long id;
+    private final String code;
     private final String description;
 
     public static MpaRating fromId(int id) {

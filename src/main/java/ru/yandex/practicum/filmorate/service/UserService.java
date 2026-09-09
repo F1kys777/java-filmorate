@@ -57,21 +57,12 @@ public class UserService {
         User user = userStorage.getUserById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
-        if (request.hasName()) {
-            user.setName(request.getName());
-        }
-        if (request.hasLogin()) {
-            user.setLogin(request.getLogin());
-        }
-        if (request.hasBirthday()) {
-            user.setBirthday(request.getBirthday());
-        }
-        if (request.hasEmail()) {
-            String newEmail = request.getEmail();
-            if (!newEmail.equals(user.getEmail())) {
-                validator.emailExists(newEmail, userStorage);
-                user.setEmail(newEmail);
-            }
+        String oldEmail = user.getEmail();
+
+        UserMapper.updateUserFields(user, request);
+
+        if (request.hasEmail() && !user.getEmail().equals(oldEmail)) {
+            validator.emailExists(user.getEmail(), userStorage);
         }
 
         User updatedUser = userStorage.updateUser(user);

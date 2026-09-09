@@ -2,9 +2,7 @@ package ru.yandex.practicum.filmorate;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.dto.NewUserRequest;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.Instant;
@@ -69,7 +67,7 @@ public class Validator {
         }
     }
 
-    public boolean emailExists(UserStorage userStorage, String email) {
+    public boolean emailExists(String email, UserStorage userStorage) {
         boolean emailExists = userStorage.getAllUsers().stream()
                 .anyMatch(existing -> existing.getEmail().equalsIgnoreCase(email));
         if (emailExists) {

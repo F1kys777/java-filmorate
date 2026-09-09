@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.mapper;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import ru.yandex.practicum.filmorate.dto.NewUserRequest;
@@ -8,10 +7,8 @@ import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class UserMapper {
@@ -50,5 +47,12 @@ public final class UserMapper {
             user.setBirthday(request.getBirthday());
         }
         return user;
+    }
+
+    public static List<UserDto> mapToListUserDto(Collection<User> users) {
+        if (users == null) return Collections.emptyList();
+        return users.stream()
+                .map(UserMapper::mapToUserDto)
+                .collect(Collectors.toList());
     }
 }

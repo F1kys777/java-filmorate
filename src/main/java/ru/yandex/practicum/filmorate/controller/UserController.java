@@ -5,7 +5,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.NewUserRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.UserDto;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 import java.util.Collection;
 import java.util.List;
@@ -58,13 +57,13 @@ public class UserController {
     }
 
     @GetMapping("/{id}/friends")
-    public List<User> getFiends(@PathVariable long id) {
+    public List<UserDto> getFriends(@PathVariable long id) {
         log.debug("Запрос на получение всех друзей пользователя с id {}", id);
         return userService.getFriends(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public List<User> getFiends(@PathVariable long id, @PathVariable long otherId) {
+    public List<UserDto> getCommonFriends(@PathVariable long id, @PathVariable long otherId) {
         log.debug("Запрос на получение общих друзей пользователей с id {} и id {}", id, otherId);
         return userService.getCommonFriends(id, otherId);
     }

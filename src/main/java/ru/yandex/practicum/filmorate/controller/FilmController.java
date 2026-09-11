@@ -5,11 +5,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewFilmRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.storage.film.Genre;
-import ru.yandex.practicum.filmorate.storage.film.MpaRating;
 
 import java.util.Collection;
 import java.util.List;
@@ -66,35 +63,11 @@ public class FilmController {
         return filmService.getPopularFilms(count);
     }
 
-    @GetMapping("/genres")
-    public List<Genre> getAllGenres() {
-        log.debug("Запрос на получение всех жанров");
-        return List.of(Genre.values()); // возвращаем все enum-константы
-    }
-
-    @GetMapping("/genres/{id}")
-    public Genre getGenreById(@PathVariable int id) {
-        log.debug("Запрос на получение жанра с id {}", id);
-        try {
-            return Genre.fromId(id);
-        } catch (IllegalArgumentException e) {
-            throw new NotFoundException("Жанр с id=" + id + " не найден");
+    @PutMapping
+    public FilmDto update(@RequestBody UpdateFilmRequest request) {
+        if (request.getId() == null) {
+            throw new ValidationException("Id должен быть указан");
         }
-    }
-
-    @GetMapping("/mpa")
-    public List<MpaRating> getAllMpaRatings() {
-        log.debug("Запрос на получение всех рейтингов");
-        return List.of(MpaRating.values());
-    }
-
-    @GetMapping("/mpa/{id}")
-    public MpaRating getMpaRatingById(@PathVariable int id) {
-        log.debug("Запрос на получение рейтинга с id {}", id);
-        try {
-            return MpaRating.fromId(id);
-        } catch (IllegalArgumentException e) {
-            throw new NotFoundException("Рейтинг с id=" + id + " не найден");
-        }
+        return filmService.update(request.getId(), request);
     }
 }

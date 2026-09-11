@@ -19,15 +19,19 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM users WHERE id = ?";
     private static final String INSERT_QUERY = "INSERT INTO users(name, email, login, birthday)" +
             "VALUES (?, ?, ?, ?)";
-    private static final String UPDATE_QUERY = "UPDATE users SET name = ?, email = ?, login = ?, birthday = ? WHERE id = ?";
-    private static final String FRIENDSHIP_QUERY = "SELECT friend_id FROM friendship WHERE user_id = ? AND status = 'CONFIRMED'";
-    private static final String FRIEND_ADD_QUERY = "INSERT INTO friendship (user_id, friend_id, status) VALUES (?, ?, ?)";
-    private static final String FRIENDSHIP_UPDATE_QUERY = "UPDATE friendship SET status = 'CONFIRMED' WHERE user_id = ? AND friend_id = ?";
+    private static final String UPDATE_QUERY = "UPDATE users SET name = ?, email = ?," +
+            " login = ?, birthday = ? WHERE id = ?";
+    private static final String FRIENDSHIP_QUERY = "SELECT friend_id FROM friendship WHERE user_id = ?" +
+            " AND status = 'CONFIRMED'";
+    private static final String FRIEND_ADD_QUERY = "INSERT INTO friendship (user_id, friend_id, status)" +
+            " VALUES (?, ?, ?)";
     private static final String FRIEND_REMOVE_QUERY = "DELETE FROM friendship WHERE user_id = ? AND friend_id = ?";
-    private static final String FIND_FRIENDS_QUERY = "SELECT u.* FROM users u JOIN friendship f ON u.id = f.friend_id WHERE f.user_id = ? AND f.status = 'CONFIRMED'";
-    private static final String COMMON_FRIENDS_QUERY = "SELECT u.* FROM users u JOIN friendship f1 ON u.id = f1.friend_id JOIN friendship f2 ON u.id = f2.friend_id WHERE f1.user_id = ? AND f2.user_id = ? AND f1.status = 'CONFIRMED' AND f2.status = 'CONFIRMED'";
+    private static final String FIND_FRIENDS_QUERY = "SELECT u.* FROM users u JOIN friendship f ON u.id = f.friend_id" +
+            " WHERE f.user_id = ? AND f.status = 'CONFIRMED'";
+    private static final String COMMON_FRIENDS_QUERY = "SELECT u.* FROM users u JOIN friendship f1 ON" +
+            " u.id = f1.friend_id JOIN friendship f2 ON u.id = f2.friend_id WHERE f1.user_id = ? AND f2.user_id = ? " +
+            "AND f1.status = 'CONFIRMED' AND f2.status = 'CONFIRMED'";
     private static final String FIND_FRIENDSHIP_QUERY = "SELECT * FROM friendship WHERE user_id = ? AND friend_id = ?";
-    private static final String FRIENDSHIP_STATUS_UPDATE = "UPDATE friendship SET status = ? WHERE user_id = ? AND friend_id = ?";
 
     public UserDbStorage(JdbcTemplate jdbc, UserRowMapper mapper) {
         super(jdbc, mapper);
@@ -60,7 +64,7 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
     }
 
     public User updateUser(User updatedUser) {
-        update(
+        jdbc.update(
                 UPDATE_QUERY,
                 updatedUser.getName(),
                 updatedUser.getEmail(),
@@ -72,7 +76,7 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
     }
 
     public User deleteUser(User user) {
-        update(
+        jdbc.update(
                 DELETE_QUERY,
                 user.getId()
         );
@@ -96,16 +100,8 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
         jdbc.update(FRIEND_ADD_QUERY, userId, friendId, status.name());
     }
 
-    public void updateFriendStatus(long userId, long friendId, FriendshipStatus status) {
-        jdbc.update(FRIENDSHIP_STATUS_UPDATE, status.name(), userId, friendId);
-    }
-
-    public void confirmFriend(long userId, long friendId) {
-        update(FRIENDSHIP_UPDATE_QUERY, userId, friendId);
-    }
-
     public void removeFriend(long userId, long friendId) {
-        update(FRIEND_REMOVE_QUERY, userId, friendId);
+        jdbc.update(FRIEND_REMOVE_QUERY, userId, friendId);
     }
 
     public List<User> getFriends(long userId) {

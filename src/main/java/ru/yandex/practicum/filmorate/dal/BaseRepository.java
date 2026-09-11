@@ -40,6 +40,7 @@ public class BaseRepository<T> {
             throw new NotFoundException("Не удалось обновить данные");
         }
     }
+
     protected long insert(String query, Object... params) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(connection -> {
@@ -52,7 +53,6 @@ public class BaseRepository<T> {
 
         Long id = keyHolder.getKeyAs(Long.class);
 
-        // Возвращаем id нового пользователя
         if (id != null) {
             return id;
         } else {

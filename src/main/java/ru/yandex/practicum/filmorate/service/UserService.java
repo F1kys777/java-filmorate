@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.Friendship;
 import ru.yandex.practicum.filmorate.storage.user.FriendshipStatus;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -72,31 +71,26 @@ public class UserService {
     public void addFriend(long userId, long friendId) {
         getUserById(userId);
         getUserById(friendId);
-
-        Optional<Friendship> reverseRequest = userStorage.findFriendship(friendId, userId);
-
-        if (reverseRequest.isPresent() && reverseRequest.get().getStatus() == FriendshipStatus.PENDING) {
-            userStorage.updateFriendStatus(friendId, userId, FriendshipStatus.CONFIRMED);
-            userStorage.addFriend(userId, friendId, FriendshipStatus.CONFIRMED);
-            log.info("Взаимная дружба подтверждена между {} и {}", userId, friendId);
-        } else {
-            userStorage.addFriend(userId, friendId, FriendshipStatus.PENDING);
-            log.info("Заявка в друзья отправлена от {} к {}", userId, friendId);
-        }
+        userStorage.addFriend(userId, friendId, FriendshipStatus.CONFIRMED);
+        log.info("Пользователь {} добавил в друзья {}", userId, friendId);
     }
 
     public void removeFriend(long userId, long friendId) {
+        getUserById(userId);
+        getUserById(friendId);
         log.debug("Удаление из друзей: userId={}, friendId={}", userId, friendId);
         userStorage.removeFriend(userId, friendId);
-        userStorage.removeFriend(friendId, userId);
     }
 
     public List<UserDto> getFriends(long userId) {
+        getUserById(userId);
         List<User> friends = userStorage.getFriends(userId);
         return UserMapper.mapToListUserDto(friends);
     }
 
     public List<UserDto> getCommonFriends(long userId, long otherId) {
+        getUserById(userId);
+        getUserById(otherId);
         List<User> mutualFriends = userStorage.getCommonFriends(userId,otherId);
 
         log.info("Получение общих друзей пользователей userId={} и {}", userId, otherId);

@@ -20,8 +20,6 @@ public interface UserStorage {
 
     void addFriend(long userId, long friendId, FriendshipStatus status);
 
-    void confirmFriend(long userId, long friendId);
-
     void removeFriend(long userId, long friendId);
 
     List<User> getFriends(long userId);
@@ -29,6 +27,4 @@ public interface UserStorage {
     List<User> getCommonFriends(long userId, long otherId);
 
     Optional<Friendship> findFriendship(long userId, long friendId);
-
-    void updateFriendStatus(long userId, long friendId, FriendshipStatus status);
 }

@@ -1,5 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -21,5 +23,10 @@ public enum MpaRating {
             if (rating.id == id) return rating;
         }
         throw new IllegalArgumentException("Invalid MPA rating id: " + id);
+    }
+
+    @JsonCreator
+    public static MpaRating fromJson(@JsonProperty("id") int id) {
+        return fromId(id);
     }
 }

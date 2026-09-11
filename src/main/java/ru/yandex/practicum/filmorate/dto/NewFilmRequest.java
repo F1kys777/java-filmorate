@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.dto;
 
 import lombok.Data;
+import ru.yandex.practicum.filmorate.storage.film.Genre;
+import ru.yandex.practicum.filmorate.storage.film.MpaRating;
 
 import java.time.LocalDate;
 
@@ -12,6 +14,6 @@ public class NewFilmRequest {
     private String description;
     private LocalDate releaseDate;
     private Integer duration;
-    private Set<Long> genreIds;
-    private Long mpaRatingId;
+    private MpaRating mpa;
+    private Set<Genre> genres;
 }

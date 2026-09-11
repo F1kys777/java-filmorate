@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class UserMapper {
+
     public static User mapToUser(NewUserRequest request) {
         User user = new User();
         user.setName(request.getName());

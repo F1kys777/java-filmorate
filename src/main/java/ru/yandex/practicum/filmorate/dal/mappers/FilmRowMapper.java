@@ -7,7 +7,6 @@ import ru.yandex.practicum.filmorate.storage.film.MpaRating;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.time.LocalDate;
 
 @Component

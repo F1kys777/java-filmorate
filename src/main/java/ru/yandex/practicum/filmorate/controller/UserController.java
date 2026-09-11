@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.NewUserRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.service.UserService;
 import java.util.Collection;
 import java.util.List;
@@ -66,5 +67,13 @@ public class UserController {
     public List<UserDto> getCommonFriends(@PathVariable long id, @PathVariable long otherId) {
         log.debug("Запрос на получение общих друзей пользователей с id {} и id {}", id, otherId);
         return userService.getCommonFriends(id, otherId);
+    }
+
+    @PutMapping
+    public UserDto update(@RequestBody UpdateUserRequest request) {
+        if (!request.hasId()) {
+            throw new ValidationException("Id должен быть указан");
+        }
+        return userService.update(request.getId(), request);
     }
 }

@@ -6,20 +6,16 @@ import ru.yandex.practicum.filmorate.Validator;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewFilmRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
-import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.film.Genre;
-import ru.yandex.practicum.filmorate.storage.film.MpaRating;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -47,18 +43,16 @@ public class FilmService {
     }
 
     public FilmDto create(NewFilmRequest request) {
-        validator.filmValidation(request.getName(), request.getDescription(), request.getReleaseDate(), request.getDuration());
+        validator.filmValidation(request.getName(), request.getDescription(),
+                request.getReleaseDate(), request.getDuration());
 
         Film film = FilmMapper.mapToFilm(request);
 
-        if (request.getMpaRatingId() != null) {
-            film.setMpaRating(MpaRating.fromId(request.getMpaRatingId().intValue()));
+        if (request.getMpa() != null) {
+            film.setMpaRating(request.getMpa());
         }
-        if (request.getGenreIds() != null && !request.getGenreIds().isEmpty()) {
-            Set<Genre> genres = request.getGenreIds().stream()
-                    .map(id -> Genre.fromId(id.intValue())) // нужен метод fromId
-                    .collect(Collectors.toSet());
-            film.setGenres(genres);
+        if (request.getGenres() != null && !request.getGenres().isEmpty()) {
+            film.setGenres(request.getGenres());
         }
 
         Film saved = filmStorage.addFilm(film);
@@ -74,15 +68,11 @@ public class FilmService {
 
         FilmMapper.updateFilmFields(film, request);
 
-        if (request.hasMpaRatingId()) {
-            film.setMpaRating(MpaRating.fromId(request.getMpaRatingId().intValue()));
+        if (request.getMpa() != null) {
+            film.setMpaRating(request.getMpa());
         }
-
-        if (request.hasGenreIds()) {
-            Set<Genre> genres = request.getGenreIds().stream()
-                    .map(id -> Genre.fromId(id.intValue()))
-                    .collect(Collectors.toSet());
-            film.setGenres(genres);
+        if (request.getGenres() != null && !request.getGenres().isEmpty()) {
+            film.setGenres(request.getGenres());
         }
 
         Film updated = filmStorage.updateFilm(filmId, film);

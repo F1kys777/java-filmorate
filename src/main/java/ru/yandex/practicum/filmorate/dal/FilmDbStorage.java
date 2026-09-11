@@ -8,10 +8,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.Genre;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
@@ -27,15 +24,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     private static final String DELETE_LIKE_QUERY = "DELETE FROM film_likes WHERE film_id = ? AND user_id = ?";
     private static final String SELECT_LIKES_QUERY = "SELECT user_id FROM film_likes WHERE film_id = ?";
     private static final String SELECT_POPULAR_QUERY = "SELECT f.*, COUNT(l.user_id) AS like_count FROM films f LEFT JOIN film_likes l ON f.id = l.film_id GROUP BY f.id ORDER BY like_count DESC LIMIT ?";
-
-    /*
-    private String name;
-    private String description;
-    private LocalDate releaseDate;
-    private Integer duration;
-    private Set<Genre> genres;
-    private Long mpaRatingId;
-    */
 
     private final GenreRowMapper genreRowMapper;
 
@@ -62,7 +50,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         );
         film.setId(id);
 
-        // Сохраняем жанры, если они есть
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
             for (Genre genre : film.getGenres()) {
                 jdbc.update(INSERT_GENRE_QUERY, id, genre.getId());
@@ -113,7 +100,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         Optional<Film> filmOpt = findOne(FIND_BY_ID_QUERY, filmId);
         filmOpt.ifPresent(film -> {
             List<Genre> genres = jdbc.query(SELECT_GENRES_QUERY, genreRowMapper, filmId);
-            film.setGenres(new HashSet<>(genres));
+            film.setGenres(new LinkedHashSet<>(genres));
             List<Long> likes = jdbc.queryForList(SELECT_LIKES_QUERY, Long.class, filmId);
             film.setLikes(new HashSet<>(likes));
         });
@@ -125,7 +112,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         List<Film> films = findMany(FIND_ALL_QUERY);
         for (Film film : films) {
             List<Genre> genres = jdbc.query(SELECT_GENRES_QUERY, genreRowMapper, film.getId());
-            film.setGenres(new HashSet<>(genres));
+            film.setGenres(new LinkedHashSet<>(genres));
             List<Long> likes = jdbc.queryForList(SELECT_LIKES_QUERY, Long.class, film.getId());
             film.setLikes(new HashSet<>(likes));
         }
@@ -147,7 +134,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         List<Film> films = jdbc.query(SELECT_POPULAR_QUERY, mapper, count);
         for (Film film : films) {
             List<Genre> genres = jdbc.query(SELECT_GENRES_QUERY, genreRowMapper, film.getId());
-            film.setGenres(new HashSet<>(genres));
+            film.setGenres(new LinkedHashSet<>(genres));
             List<Long> likes = jdbc.queryForList(SELECT_LIKES_QUERY, Long.class, film.getId());
             film.setLikes(new HashSet<>(likes));
         }

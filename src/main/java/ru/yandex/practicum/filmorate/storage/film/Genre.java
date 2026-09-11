@@ -1,5 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -21,5 +23,10 @@ public enum Genre {
             if (genre.id == id) return genre;
         }
         throw new IllegalArgumentException("Invalid genre id: " + id);
+    }
+
+    @JsonCreator
+    public static Genre fromJson(@JsonProperty("id") int id) {
+        return fromId(id);
     }
 }

@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.dto;
 
 import lombok.Data;
 import ru.yandex.practicum.filmorate.storage.film.Genre;
+import ru.yandex.practicum.filmorate.storage.film.MpaRating;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -12,8 +13,9 @@ public class UpdateFilmRequest {
     private String description;
     private LocalDate releaseDate;
     private Integer duration;
-    private Set<Long> genreIds;
-    private Long mpaRatingId;
+    private MpaRating mpa;
+    private Set<Genre> genres;
+    private Long id;
 
     public boolean hasName() {
         return ! (name == null || name.isBlank());
@@ -29,13 +31,5 @@ public class UpdateFilmRequest {
 
     public boolean hasReleaseDate() {
         return ! (releaseDate == null);
-    }
-
-    public boolean hasGenreIds() {
-        return ! (genreIds == null);
-    }
-
-    public boolean hasMpaRatingId() {
-        return! (mpaRatingId == null);
     }
 }

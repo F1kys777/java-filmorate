@@ -4,10 +4,9 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import ru.yandex.practicum.filmorate.dto.*;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.film.Genre;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -29,9 +28,17 @@ public class FilmMapper {
         dto.setDescription(film.getDescription());
         dto.setReleaseDate(film.getReleaseDate());
         dto.setDuration(film.getDuration());
-        dto.setGenres(film.getGenres());
-        dto.setMpaRating(film.getMpaRating());
         dto.setLikes(film.getLikes());
+
+        if (film.getMpaRating() != null) {
+            dto.setMpa(new MpaDto(film.getMpaRating()));
+        }
+        if (film.getGenres() != null) {
+            dto.setGenres(film.getGenres().stream()
+                    .sorted(Comparator.comparingInt(Genre::getId))
+                    .map(GenreDto::new)
+                    .collect(Collectors.toCollection(LinkedHashSet::new)));
+        }
         return dto;
     }
 

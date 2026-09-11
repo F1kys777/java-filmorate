@@ -29,6 +29,7 @@ public class BaseRepository<T> {
     protected List<T> findMany(String query, Object... params) {
         return jdbc.query(query, mapper, params);
     }
+
     protected boolean delete(String query, long id) {
         int rowsDeleted = jdbc.update(query, id);
         return rowsDeleted > 0;
@@ -48,7 +49,7 @@ public class BaseRepository<T> {
                     .prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
             for (int idx = 0; idx < params.length; idx++) {
                 ps.setObject(idx + 1, params[idx]);
-            }
+             }
             return ps;}, keyHolder);
 
         Long id = keyHolder.getKeyAs(Long.class);

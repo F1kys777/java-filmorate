@@ -1,7 +1,7 @@
-package ru.yandex.practicum.filmorate.dto;
+/*package ru.yandex.practicum.filmorate.dto;
 
 import lombok.Getter;
-import ru.yandex.practicum.filmorate.storage.film.MpaRating;
+import ru.yandex.practicum.filmorate.model.MpaRating;
 
 @Getter
 public class MpaDto {
@@ -12,4 +12,4 @@ public class MpaDto {
         this.id = (int) rating.getId();
         this.name = rating.getCode();
     }
-}
+}*/

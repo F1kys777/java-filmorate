@@ -6,7 +6,7 @@ import ru.yandex.practicum.filmorate.dal.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.GenreRowMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.film.Genre;
+import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.util.*;
 
@@ -24,12 +24,16 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     private static final String DELETE_LIKE_QUERY = "DELETE FROM film_likes WHERE film_id = ? AND user_id = ?";
     private static final String SELECT_LIKES_QUERY = "SELECT user_id FROM film_likes WHERE film_id = ?";
     private static final String SELECT_POPULAR_QUERY = "SELECT f.*, COUNT(l.user_id) AS like_count FROM films f LEFT JOIN film_likes l ON f.id = l.film_id GROUP BY f.id ORDER BY like_count DESC LIMIT ?";
+    private static final String SELECT_MPA_QUERY = "SELECT mpa_rating_id FROM films WHERE id = ?";
 
     private final GenreRowMapper genreRowMapper;
+    private final MpaRatingDbStorage mpaStorage;
 
-    public FilmDbStorage(JdbcTemplate jdbc, FilmRowMapper mapper, GenreRowMapper genreRowMapper) {
+    public FilmDbStorage(JdbcTemplate jdbc, FilmRowMapper mapper, GenreRowMapper genreRowMapper,
+                         MpaRatingDbStorage mpaStorage) {
         super(jdbc, mapper);
         this.genreRowMapper = genreRowMapper;
+        this.mpaStorage = mpaStorage;
     }
 
     public Film addFilm(Film film) {
@@ -99,6 +103,11 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     public Optional<Film> getFilmById(long filmId) {
         Optional<Film> filmOpt = findOne(FIND_BY_ID_QUERY, filmId);
         filmOpt.ifPresent(film -> {
+            Integer mpaId = jdbc.queryForObject(
+                    SELECT_MPA_QUERY, Integer.class, filmId);
+            if (mpaId != null) {
+                mpaStorage.findById(mpaId).ifPresent(film::setMpaRating);
+            }
             List<Genre> genres = jdbc.query(SELECT_GENRES_QUERY, genreRowMapper, filmId);
             film.setGenres(new LinkedHashSet<>(genres));
             List<Long> likes = jdbc.queryForList(SELECT_LIKES_QUERY, Long.class, filmId);
@@ -111,6 +120,10 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     public Collection<Film> getAllFilms() {
         List<Film> films = findMany(FIND_ALL_QUERY);
         for (Film film : films) {
+            Integer mpaId = jdbc.queryForObject(SELECT_MPA_QUERY, Integer.class, film.getId());
+            if (mpaId != null) {
+                mpaStorage.findById(mpaId).ifPresent(film::setMpaRating);
+            }
             List<Genre> genres = jdbc.query(SELECT_GENRES_QUERY, genreRowMapper, film.getId());
             film.setGenres(new LinkedHashSet<>(genres));
             List<Long> likes = jdbc.queryForList(SELECT_LIKES_QUERY, Long.class, film.getId());
@@ -133,6 +146,10 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     public List<Film> getPopularFilms(int count) {
         List<Film> films = jdbc.query(SELECT_POPULAR_QUERY, mapper, count);
         for (Film film : films) {
+            Integer mpaId = jdbc.queryForObject(SELECT_MPA_QUERY, Integer.class, film.getId());
+            if (mpaId != null) {
+                mpaStorage.findById(mpaId).ifPresent(film::setMpaRating);
+            }
             List<Genre> genres = jdbc.query(SELECT_GENRES_QUERY, genreRowMapper, film.getId());
             film.setGenres(new LinkedHashSet<>(genres));
             List<Long> likes = jdbc.queryForList(SELECT_LIKES_QUERY, Long.class, film.getId());

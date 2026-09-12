@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.Validator;
+import ru.yandex.practicum.filmorate.dal.GenreDbStorage;
+import ru.yandex.practicum.filmorate.dal.MpaRatingDbStorage;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewFilmRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
@@ -10,6 +12,8 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
@@ -23,11 +27,16 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final Validator validator;
     private final UserStorage userStorage;
+    private final MpaRatingDbStorage mpaStorage;
+    private final GenreDbStorage genreStorage;
 
-    public FilmService(FilmStorage filmStorage, Validator validator, UserStorage userStorage) {
+    public FilmService(FilmStorage filmStorage, Validator validator, UserStorage userStorage,
+                       MpaRatingDbStorage mpaStorage, GenreDbStorage genreStorage) {
         this.filmStorage = filmStorage;
         this.validator = validator;
         this.userStorage = userStorage;
+        this.mpaStorage = mpaStorage;
+        this.genreStorage = genreStorage;
     }
 
     public Collection<FilmDto> findAll() {
@@ -48,12 +57,23 @@ public class FilmService {
 
         Film film = FilmMapper.mapToFilm(request);
 
-        if (request.getMpa() != null) {
-            film.setMpaRating(request.getMpa());
+        if (request.getMpa() == null || request.getMpa().getId() == null) {
+            throw new ValidationException("Рейтинг MPA должен быть указан");
         }
-        if (request.getGenres() != null && !request.getGenres().isEmpty()) {
-            film.setGenres(request.getGenres());
+        MpaRating mpa = mpaStorage.findById(request.getMpa().getId().intValue())
+                .orElseThrow(() -> new NotFoundException("Рейтинг MPA не найден"));
+
+        Set<Genre> genres = new LinkedHashSet<>();
+        if (request.getGenres() != null) {
+            for (Genre genre : request.getGenres()) {
+                Genre full = genreStorage.findById(genre.getId())
+                        .orElseThrow(() -> new NotFoundException("Жанр с id=" + genre.getId() + " не найден"));
+                genres.add(full);
+            }
         }
+
+        film.setMpaRating(mpa);
+        film.setGenres(genres);
 
         Film saved = filmStorage.addFilm(film);
         log.info("Фильм {} с id {} успешно создан", film, film.getId());

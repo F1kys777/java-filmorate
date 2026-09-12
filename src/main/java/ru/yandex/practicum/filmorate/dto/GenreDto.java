@@ -1,7 +1,7 @@
-package ru.yandex.practicum.filmorate.dto;
+/*package ru.yandex.practicum.filmorate.dto;
 
 import lombok.Getter;
-import ru.yandex.practicum.filmorate.storage.film.Genre;
+import ru.yandex.practicum.filmorate.model.Genre;
 
 @Getter
 public class GenreDto {
@@ -12,4 +12,4 @@ public class GenreDto {
         this.id = genre.getId();
         this.name = genre.getDisplayName();
     }
-}
+}*/

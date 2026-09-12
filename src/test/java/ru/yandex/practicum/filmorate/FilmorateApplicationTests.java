@@ -10,31 +10,31 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.filmorate.dal.FilmDbStorage;
+import ru.yandex.practicum.filmorate.dal.MpaRatingDbStorage;
 import ru.yandex.practicum.filmorate.dal.UserDbStorage;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.GenreRowMapper;
+import ru.yandex.practicum.filmorate.dal.mappers.MpaRatingRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.film.Genre;
-import ru.yandex.practicum.filmorate.storage.film.MpaRating;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.storage.user.FriendshipStatus;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @JdbcTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@Import({UserDbStorage.class, FilmDbStorage.class,
-        UserRowMapper.class, FilmRowMapper.class, GenreRowMapper.class})
+@Import({UserDbStorage.class, FilmDbStorage.class, MpaRatingDbStorage.class, UserRowMapper.class, FilmRowMapper.class,
+        GenreRowMapper.class, MpaRatingRowMapper.class
+})
 class FilmorateApplicationTests {
 
     private final Validator validator = new Validator();
@@ -238,8 +238,8 @@ class FilmorateApplicationTests {
         film.setDescription("Dreams");
         film.setReleaseDate(LocalDate.of(2010, 7, 16));
         film.setDuration(148);
-        film.setMpaRating(MpaRating.PG_13);
-        film.setGenres(Set.of(Genre.THRILLER));
+        film.setMpaRating(new MpaRating(3L, null));
+        film.setGenres(new LinkedHashSet<>(List.of(new Genre(4, null))));
         film = filmStorage.addFilm(film);
     }
 
@@ -386,8 +386,8 @@ class FilmorateApplicationTests {
         newFilm.setDescription("Neo");
         newFilm.setReleaseDate(LocalDate.of(1999, 3, 31));
         newFilm.setDuration(136);
-        newFilm.setMpaRating(MpaRating.R);
-        newFilm.setGenres(Set.of(Genre.ACTION));
+        newFilm.setMpaRating(new MpaRating(4L, null));
+        newFilm.setGenres(new LinkedHashSet<>(List.of(new Genre(6, null))));
 
         Film saved = filmStorage.addFilm(newFilm);
 
@@ -398,8 +398,8 @@ class FilmorateApplicationTests {
     @Test
     public void testUpdateFilm() {
         film.setName("Updated");
-        film.setMpaRating(MpaRating.R);
-        film.setGenres(Set.of(Genre.ACTION));
+        film.setMpaRating(new MpaRating(4L, null));
+        film.setGenres(new LinkedHashSet<>(List.of(new Genre(6, null))));
         filmStorage.updateFilm(film.getId(), film);
 
         Optional<Film> updated = filmStorage.getFilmById(film.getId());
@@ -407,9 +407,11 @@ class FilmorateApplicationTests {
         assertThat(updated)
                 .isPresent()
                 .hasValueSatisfying(f -> {
-                    assertThat(f).hasFieldOrPropertyWithValue("name", "Updated");
-                    assertThat(f).hasFieldOrPropertyWithValue("mpaRating", MpaRating.R);
-                    assertThat(f.getGenres()).containsExactly(Genre.ACTION);
+                    assertThat(f.getName()).isEqualTo("Updated");
+                    assertThat(f.getMpaRating().getId()).isEqualTo(4L);
+                    assertThat(f.getGenres())
+                            .extracting(Genre::getId)
+                            .containsExactly(6);
                 });
     }
 
@@ -483,8 +485,8 @@ class FilmorateApplicationTests {
         f.setDescription("desc");
         f.setReleaseDate(LocalDate.of(1999, 3, 31));
         f.setDuration(136);
-        f.setMpaRating(MpaRating.R);
-        f.setGenres(Set.of(Genre.ACTION));
+        f.setMpaRating(new MpaRating(4L, null));
+        f.setGenres(new LinkedHashSet<>(List.of(new Genre(6, null))));
         return f;
     }
 }

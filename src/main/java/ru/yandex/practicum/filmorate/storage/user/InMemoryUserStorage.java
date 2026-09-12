@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.user;
+/*package ru.yandex.practicum.filmorate.storage.user;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -61,4 +61,4 @@ public class InMemoryUserStorage implements UserStorage {
                 .orElse(0);
         return ++currentMaxId;
     }
-}
+}*/

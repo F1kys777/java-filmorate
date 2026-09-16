@@ -2,8 +2,12 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.dto.NewFilmRequest;
+import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.service.FilmService;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -18,25 +22,25 @@ public class FilmController {
     }
 
     @GetMapping
-    public Collection<Film> findAll() {
+    public Collection<FilmDto> findAll() {
         log.debug("Запрос на получение всех фильмов");
         return filmService.findAll();
     }
 
     @PostMapping
-    public Film create(@RequestBody Film film) {
-        log.debug("Создание фильма {}", film);
-        return filmService.create(film);
+    public FilmDto create(@RequestBody NewFilmRequest request) {
+        log.debug("Создание фильма {}", request);
+        return filmService.create(request);
     }
 
-    @PutMapping
-    public Film update(@RequestBody Film newFilmData) {
-        log.debug("Попытка изменение фильма {}", newFilmData);
-        return filmService.update(newFilmData);
+    @PutMapping("/{filmId}")
+    public FilmDto update(@PathVariable long filmId, @RequestBody UpdateFilmRequest request) {
+        log.debug("Попытка изменение фильма {}", request);
+        return filmService.update(filmId, request);
     }
 
     @GetMapping("/{id}")
-    public Film findById(@PathVariable long id) {
+    public FilmDto findById(@PathVariable long id) {
         log.debug("Поиск фильма с id {}", id);
         return filmService.getFilmById(id);
     }
@@ -54,8 +58,16 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<Film> getPopular(@RequestParam(defaultValue = "10") int count) {
+    public List<FilmDto> getPopular(@RequestParam(defaultValue = "10") int count) {
         log.debug("Запрос на получение списка популярных фильмов со значение count {}", count);
         return filmService.getPopularFilms(count);
+    }
+
+    @PutMapping
+    public FilmDto update(@RequestBody UpdateFilmRequest request) {
+        if (request.getId() == null) {
+            throw new ValidationException("Id должен быть указан");
+        }
+        return filmService.update(request.getId(), request);
     }
 }

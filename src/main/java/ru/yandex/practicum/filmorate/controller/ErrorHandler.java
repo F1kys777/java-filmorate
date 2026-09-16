@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -20,6 +21,13 @@ public class ErrorHandler {
     public ErrorResponse handleParameterNotValid(ValidationException e) {
         log.warn("Ошибка валидации: ", e);
         return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleNotReadable(HttpMessageNotReadableException e) {
+        log.warn("Некорректные данные в запросе: ", e);
+        return new ErrorResponse("Указан несуществующий идентификатор");
     }
 
     @ExceptionHandler(NotFoundException.class)
@@ -42,4 +50,4 @@ public class ErrorHandler {
         log.warn("Несоблюдения условий: ", e);
         return new ErrorResponse(e.getMessage());
     }
-    }
+}

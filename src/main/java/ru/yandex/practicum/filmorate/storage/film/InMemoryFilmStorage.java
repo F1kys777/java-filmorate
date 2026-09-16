@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.film;
+/*package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -15,7 +15,7 @@ public class InMemoryFilmStorage implements  FilmStorage {
     private final Map<Long, Film> films = new HashMap<>();
 
     @Override
-    public void addFilm(Film film) {
+    public Film addFilm(Film film) {
         long filmId = getNextId();
         film.setId(filmId);
         log.debug("Добавление Film {}, установлен id {}", film, filmId);
@@ -60,4 +60,4 @@ public class InMemoryFilmStorage implements  FilmStorage {
                 .orElse(0);
         return ++currentMaxId;
     }
-}
+}*/

@@ -129,4 +129,17 @@ public class FilmService {
         List<Film> films = filmStorage.getPopularFilms(count);
         return FilmMapper.mapToListFilmDto(films);
     }
+
+    public List<FilmDto> getCommonFriendsFilms(long userId, long friendId) {
+        log.debug("Получение списка общих фильмов {} и {}", userId, friendId);
+        List<Film> films = filmStorage.getCommonFriendsFilms(userId,friendId);
+        return FilmMapper.mapToListFilmDto(films);
+    }
+
+    public void remove(long filmId) {
+        log.debug("Удаление фильма с id {}", filmId);
+        Film film = filmStorage.getFilmById(filmId)
+                .orElseThrow(() -> new NotFoundException("Фильм не найден"));
+        filmStorage.deleteFilm(film);
+    }
 }

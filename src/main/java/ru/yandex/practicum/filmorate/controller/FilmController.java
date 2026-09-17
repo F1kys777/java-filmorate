@@ -70,4 +70,16 @@ public class FilmController {
         }
         return filmService.update(request.getId(), request);
     }
+
+    @GetMapping("/common")
+    public List<FilmDto> getCommonFriendsFilms(@RequestParam long userId, @RequestParam long friendId) {
+        log.debug("Запрос на получение списка общих фильмов {} и {}", userId, friendId);
+        return filmService.getCommonFriendsFilms(userId, friendId);
+    }
+
+    @DeleteMapping("/{filmId}")
+    public void remove(@PathVariable long filmId) {
+        log.debug("Запрос на удаление фильма с id {}", filmId);
+        filmService.remove(filmId);
+    }
 }

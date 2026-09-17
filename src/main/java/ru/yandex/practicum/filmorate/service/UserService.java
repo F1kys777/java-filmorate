@@ -96,4 +96,11 @@ public class UserService {
         log.info("Получение общих друзей пользователей userId={} и {}", userId, otherId);
         return UserMapper.mapToListUserDto(mutualFriends);
     }
+
+    public void remove(long userId) {
+        log.debug("Удаление пользователя с id {}", userId);
+        User user = userStorage.getUserById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+        userStorage.deleteUser(user);
+    }
 }

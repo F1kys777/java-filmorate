@@ -25,6 +25,10 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     private static final String SELECT_LIKES_QUERY = "SELECT user_id FROM film_likes WHERE film_id = ?";
     private static final String SELECT_POPULAR_QUERY = "SELECT f.*, COUNT(l.user_id) AS like_count FROM films f LEFT JOIN film_likes l ON f.id = l.film_id GROUP BY f.id ORDER BY like_count DESC LIMIT ?";
     private static final String SELECT_MPA_QUERY = "SELECT mpa_rating_id FROM films WHERE id = ?";
+    private static final String SELECT_COMMON_FRIEND_FILM_QUERY = "SELECT f.*, COUNT(l.user_id) AS like_count " +
+            "FROM films f JOIN film_likes l ON f.id = l.film_id JOIN film_likes l1 ON f.id = l1.film_id " +
+            "JOIN film_likes l2 ON f.id = l2.film_id WHERE l1.user_id = ? AND l2.user_id = ? GROUP BY f.id " +
+            "ORDER BY like_count";
 
     private final GenreRowMapper genreRowMapper;
     private final MpaRatingDbStorage mpaStorage;
@@ -145,6 +149,21 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     @Override
     public List<Film> getPopularFilms(int count) {
         List<Film> films = jdbc.query(SELECT_POPULAR_QUERY, mapper, count);
+        for (Film film : films) {
+            Integer mpaId = jdbc.queryForObject(SELECT_MPA_QUERY, Integer.class, film.getId());
+            if (mpaId != null) {
+                mpaStorage.findById(mpaId).ifPresent(film::setMpaRating);
+            }
+            List<Genre> genres = jdbc.query(SELECT_GENRES_QUERY, genreRowMapper, film.getId());
+            film.setGenres(new LinkedHashSet<>(genres));
+            List<Long> likes = jdbc.queryForList(SELECT_LIKES_QUERY, Long.class, film.getId());
+            film.setLikes(new HashSet<>(likes));
+        }
+        return films;
+    }
+
+    public List<Film> getCommonFriendsFilms(long userId, long friendId) {
+        List<Film> films = jdbc.query(SELECT_COMMON_FRIEND_FILM_QUERY, mapper, userId, friendId);
         for (Film film : films) {
             Integer mpaId = jdbc.queryForObject(SELECT_MPA_QUERY, Integer.class, film.getId());
             if (mpaId != null) {

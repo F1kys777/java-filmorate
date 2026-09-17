@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 import ru.yandex.practicum.filmorate.Validator;
 import ru.yandex.practicum.filmorate.dal.GenreDbStorage;
 import ru.yandex.practicum.filmorate.dal.MpaRatingDbStorage;
@@ -127,6 +128,12 @@ public class FilmService {
         validator.filmCountValidation(count);
         log.info("Получение списка из {} популярных фильмов", count);
         List<Film> films = filmStorage.getPopularFilms(count);
+        return FilmMapper.mapToListFilmDto(films);
+    }
+
+    public List<FilmDto> getCommonFriendsFilms(long userId, long friendId) {
+        log.debug("Получение списка общих фильмов {} и {}", userId, friendId);
+        List<Film> films = filmStorage.getCommonFriendsFilms(userId,friendId);
         return FilmMapper.mapToListFilmDto(films);
     }
 }

@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 import ru.yandex.practicum.filmorate.Validator;
 import ru.yandex.practicum.filmorate.dto.NewUserRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
@@ -95,5 +96,12 @@ public class UserService {
 
         log.info("Получение общих друзей пользователей userId={} и {}", userId, otherId);
         return UserMapper.mapToListUserDto(mutualFriends);
+    }
+
+    public void remove(long userId) {
+        log.debug("Удаление пользователя с id {}", userId);
+        User user = userStorage.getUserById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+        userStorage.deleteUser(user);
     }
 }

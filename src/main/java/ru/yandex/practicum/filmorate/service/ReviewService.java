@@ -34,6 +34,33 @@ public class ReviewService {
         return reviewDbStorage.getReviewsById(filmId, count);
     }
 
+    public Map<String, String> addLikeToReview(Long id, Long userId) {
+        reviewDbStorage.getReviewById(id);
+        userService.getUserById(userId);
+        reviewDbStorage.addLikeToReview(id, userId);
+        return Map.of("Сообщение: ", "лайк успешно поставлен");
+    }
+
+    public Map<String, String> removeLikeFromReview(Long id, Long userId) {
+        reviewDbStorage.getReviewById(id);
+        userService.getUserById(userId);
+        reviewDbStorage.removeLikeFromReview(id, userId);
+        return Map.of("Сообщение: ", "лайк успешно удален");
+    }
+
+    public Map<String, String> removeDislikeFromReview(Long id, Long userId) {
+        reviewDbStorage.getReviewById(id);
+        userService.getUserById(userId);
+        reviewDbStorage.removeDislikeFromReview(id, userId);
+        return Map.of("Сообщение: ", "дизлайк успешно удален");
+    }
+
+    public Map<String, String> addDislikeToReview(Long id, Long userId) {
+        reviewDbStorage.getReviewById(id);
+        userService.getUserById(userId);
+        reviewDbStorage.addDislikeToReview(id, userId);
+        return Map.of("Сообщение: ", "дизлайк успешно поставлен");
+    }
 
     public Map<String, String> deleteReviewById(Long id) {
         getReviewById(id);

@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.service.ReviewService;
 import ru.yandex.practicum.filmorate.validator.Create;
 import ru.yandex.practicum.filmorate.validator.Update;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -21,8 +22,14 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @GetMapping(value = "/{id}")
-    public ReviewDto createReview(@PathVariable @Positive Long id) {
+    public ReviewDto getReview(@PathVariable @Positive Long id) {
         return reviewService.getReviewById(id);
+    }
+
+    @GetMapping
+    public List<ReviewDto> getReviews(@RequestParam(value = "filmId") Long filmId,
+                                      @RequestParam(value = "count", defaultValue = "10") Long count) {
+        return reviewService.getReviewsById(filmId, count);
     }
 
     @DeleteMapping(value = "/{id}")

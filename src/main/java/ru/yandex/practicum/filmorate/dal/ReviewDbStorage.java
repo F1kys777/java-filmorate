@@ -18,6 +18,7 @@ import ru.yandex.practicum.filmorate.model.Review;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 
 @Slf4j
 @Repository
@@ -28,6 +29,8 @@ public class ReviewDbStorage {
     private static final String INSERT_NEW_REVIEW = "INSERT INTO reviews(film_id, user_id, is_positive, content)" +
             "VALUES (?, ?, ?, ?)";
     private static final String FIND_REVIEW_BY_ID_QUERY = "SELECT * FROM reviews WHERE review_id = ?";
+    private static final String FIND_REVIEWS_BY_FILM_ID = "SELECT * FROM reviews WHERE film_id = ? ORDER BY useful " +
+            "DESC LIMIT ?";
     private static final String UPDATE_REVIEW = "UPDATE reviews SET is_positive = ?, content = ? WHERE review_id = ?";
     private static final String DELETE_REVIEW_BY_ID = "DELETE FROM reviews WHERE review_id = ?;";
 
@@ -82,6 +85,24 @@ public class ReviewDbStorage {
             return rowMapperReview.mapToReviewDto(reviewFromBd);
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public List<ReviewDto> getReviewsById(Long filmId, Long count) {
+        try {
+            return jdbc.query(FIND_REVIEWS_BY_FILM_ID, rowMapperReview, filmId, count).stream()
+                    .map(review -> {
+                        try {
+                            return rowMapperReview.mapToReviewDto(review);
+                        } catch (SQLException e) {
+                            throw new RuntimeException(e);
+                        }
+                    })
+                    .toList();
+        } catch (EmptyResultDataAccessException e) {
+            throw new NotFoundException(
+                    "Указанный filmId: " + filmId + " не найден"
+            );
         }
     }
 

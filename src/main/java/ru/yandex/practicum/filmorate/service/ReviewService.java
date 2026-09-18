@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.dto.NewReviewRequest;
 import ru.yandex.practicum.filmorate.dto.ReviewDto;
 import ru.yandex.practicum.filmorate.dto.UpdateReviewRequest;
 
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -27,6 +28,12 @@ public class ReviewService {
     public ReviewDto getReviewById(Long id) {
         return reviewDbStorage.getReviewById(id);
     }
+
+    public List<ReviewDto> getReviewsById(Long filmId, Long count) {
+        filmService.getFilmById(filmId);
+        return reviewDbStorage.getReviewsById(filmId, count);
+    }
+
 
     public Map<String, String> deleteReviewById(Long id) {
         getReviewById(id);

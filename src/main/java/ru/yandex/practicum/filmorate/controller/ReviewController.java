@@ -69,5 +69,4 @@ public class ReviewController {
     public ReviewDto updateReview(@Validated(Update.class) @RequestBody UpdateReviewRequest reviewRequest) {
         return reviewService.updateReview(reviewRequest);
     }
-
 }

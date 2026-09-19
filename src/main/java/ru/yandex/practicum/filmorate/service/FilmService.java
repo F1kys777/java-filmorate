@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.Validator;
+import ru.yandex.practicum.filmorate.dal.FilmDbStorage;
 import ru.yandex.practicum.filmorate.dal.GenreDbStorage;
 import ru.yandex.practicum.filmorate.dal.MpaRatingDbStorage;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
@@ -18,7 +19,6 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-
 import java.util.*;
 
 @Service
@@ -29,19 +29,26 @@ public class FilmService {
     private final UserStorage userStorage;
     private final MpaRatingDbStorage mpaStorage;
     private final GenreDbStorage genreStorage;
+    private final FilmDbStorage filmDbStorage;
 
     public FilmService(FilmStorage filmStorage, Validator validator, UserStorage userStorage,
-                       MpaRatingDbStorage mpaStorage, GenreDbStorage genreStorage) {
+                       MpaRatingDbStorage mpaStorage, GenreDbStorage genreStorage, FilmDbStorage filmDbStorage) {
         this.filmStorage = filmStorage;
         this.validator = validator;
         this.userStorage = userStorage;
         this.mpaStorage = mpaStorage;
         this.genreStorage = genreStorage;
+        this.filmDbStorage = filmDbStorage;
     }
 
     public Collection<FilmDto> findAll() {
         log.info("Получение списка всех фильмов");
         return FilmMapper.mapToListFilmDto(filmStorage.getAllFilms());
+    }
+
+    public Collection<FilmDto> getPopularGenreAndYear(Long count, Long genre, Long year) {
+        log.info("Получение популярных фильмов по годам и жанру");
+        return filmDbStorage.getPopularGenreAndYear(count, genre, year);
     }
 
     public FilmDto getFilmById(long filmId) {

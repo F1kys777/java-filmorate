@@ -63,6 +63,13 @@ public class FilmController {
         return filmService.getPopularFilms(count);
     }
 
+    @GetMapping("/search")
+    public List<FilmDto> search(@RequestParam String query,
+                                @RequestParam(defaultValue = "title") String by) {
+        log.debug("Поиск фильмов: query={}, by={}", query, by);
+        return filmService.searchFilms(query, by);
+    }
+
     @PutMapping
     public FilmDto update(@RequestBody UpdateFilmRequest request) {
         if (request.getId() == null) {

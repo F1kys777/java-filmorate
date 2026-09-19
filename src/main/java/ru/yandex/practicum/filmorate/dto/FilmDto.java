@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MpaRating;
 
@@ -21,5 +22,6 @@ public class FilmDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Set<Long> likes = new HashSet<>();
     private Set<Genre> genres = new LinkedHashSet<>();
+    private Set<Director> directors = new LinkedHashSet<>();
     private MpaRating mpa;
 }

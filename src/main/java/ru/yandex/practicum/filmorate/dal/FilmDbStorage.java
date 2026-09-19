@@ -25,6 +25,13 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     private static final String SELECT_LIKES_QUERY = "SELECT user_id FROM film_likes WHERE film_id = ?";
     private static final String SELECT_POPULAR_QUERY = "SELECT f.*, COUNT(l.user_id) AS like_count FROM films f LEFT JOIN film_likes l ON f.id = l.film_id GROUP BY f.id ORDER BY like_count DESC LIMIT ?";
     private static final String SELECT_MPA_QUERY = "SELECT mpa_rating_id FROM films WHERE id = ?";
+    private static final String SEARCH_BY_TITLE_QUERY =
+            "SELECT f.*, COUNT(l.user_id) AS like_count " +
+                    "FROM films f " +
+                    "LEFT JOIN film_likes l ON f.id = l.film_id " +
+                    "WHERE LOWER(f.name) LIKE LOWER(CONCAT('%', ?, '%')) " +
+                    "GROUP BY f.id " +
+                    "ORDER BY like_count DESC";
 
     private final GenreRowMapper genreRowMapper;
     private final MpaRatingDbStorage mpaStorage;
@@ -156,5 +163,32 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             film.setLikes(new HashSet<>(likes));
         }
         return films;
+    }
+
+    @Override
+    public List<Film> searchFilms(String query, List<String> by) {
+        if (!by.contains("title")) {
+            // TODO: как только появится сущность Director (film_director), здесь нужно
+            // добавить отдельный запрос с JOIN по режиссёрам и объединить результаты с title.
+            // Пока Director не реализован, поиск "только по режиссёру" честно возвращает пусто.
+            return List.of();
+        }
+
+        List<Film> films = jdbc.query(SEARCH_BY_TITLE_QUERY, mapper, query);
+        for (Film film : films) {
+            enrichFilm(film);
+        }
+        return films;
+    }
+
+    private void enrichFilm(Film film) {
+        Integer mpaId = jdbc.queryForObject(SELECT_MPA_QUERY, Integer.class, film.getId());
+        if (mpaId != null) {
+            mpaStorage.findById(mpaId).ifPresent(film::setMpaRating);
+        }
+        List<Genre> genres = jdbc.query(SELECT_GENRES_QUERY, genreRowMapper, film.getId());
+        film.setGenres(new LinkedHashSet<>(genres));
+        List<Long> likes = jdbc.queryForList(SELECT_LIKES_QUERY, Long.class, film.getId());
+        film.setLikes(new HashSet<>(likes));
     }
 }

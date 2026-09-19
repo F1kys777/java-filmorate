@@ -23,4 +23,6 @@ public interface FilmStorage {
     void removeLike(long filmId, long userId);
 
     List<Film> getPopularFilms(int count);
+
+    List<Film> searchFilms(String query, List<String> by);
 }

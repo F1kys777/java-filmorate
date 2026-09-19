@@ -44,9 +44,6 @@ public class ReviewDbStorage {
             " review_id = ?";
     private static final String UPDATE_REVIEW_AFTER_ADD_DISLIKE = "UPDATE reviews SET useful = useful - 1 WHERE" +
             " review_id = ?";
-    private static final String UPDATE_DISLIKE_TO_LIKE = "UPDATE reviewRating SET rating = 1 WHERE user_id = ? AND review_id = ?";
-    private static final String UPDATE_LIKE_TO_DISLIKE = "UPDATE reviewRating SET rating = -1 WHERE user_id" +
-            " = ? AND review_id = ?";
     private static final String DELETE_REVIEW_BY_ID = "DELETE FROM reviews WHERE review_id = ?;";
     private static final String DELETE_LIKE_FROM_REVIEW_RATING = "DELETE FROM reviewRating WHERE user_id = ? AND review_id = ?;";
 

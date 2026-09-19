@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dal.FeedEventsDb;
 import ru.yandex.practicum.filmorate.dal.ReviewDbStorage;
 import ru.yandex.practicum.filmorate.dto.NewReviewRequest;
 import ru.yandex.practicum.filmorate.dto.ReviewDto;
@@ -18,11 +19,15 @@ public class ReviewService {
     private final FilmService filmService;
     private final UserService userService;
     private final ReviewDbStorage reviewDbStorage;
+    private final FeedEventsDb feedEventsDb;
 
     public ReviewDto createReview(NewReviewRequest review) {
         filmService.getFilmById(review.getFilmId());
         userService.getUserById(review.getUserId());
-        return reviewDbStorage.addReview(review);
+        ReviewDto reviewDto = reviewDbStorage.addReview(review);
+        feedEventsDb.insertEvents(System.currentTimeMillis(), review.getUserId(), "REVIEW", "ADD",
+                reviewDto.getReviewId());
+        return reviewDto;
     }
 
     public ReviewDto getReviewById(Long id) {
@@ -63,8 +68,10 @@ public class ReviewService {
     }
 
     public Map<String, String> deleteReviewById(Long id) {
-        getReviewById(id);
+        ReviewDto reviewDto = getReviewById(id);
         reviewDbStorage.deleteReviewById(id);
+        feedEventsDb.insertEvents(System.currentTimeMillis(), reviewDto.getUserId(), "REVIEW", "REMOVE",
+                reviewDto.getReviewId());
         return Map.of("Сообщение: ", "отзыв успешно удален");
     }
 
@@ -72,6 +79,9 @@ public class ReviewService {
         filmService.getFilmById(review.getFilmId());
         userService.getUserById(review.getUserId());
         reviewDbStorage.getReviewById(review.getReviewId());
-        return reviewDbStorage.updateReview(review);
+        ReviewDto reviewDto = reviewDbStorage.updateReview(review);
+        feedEventsDb.insertEvents(System.currentTimeMillis(), review.getUserId(), "REVIEW", "UPDATE",
+                reviewDto.getReviewId());
+        return reviewDto;
     }
 }

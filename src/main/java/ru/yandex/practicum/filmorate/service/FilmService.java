@@ -3,8 +3,10 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.Validator;
+import ru.yandex.practicum.filmorate.dal.FeedEventsDb;
 import ru.yandex.practicum.filmorate.dal.GenreDbStorage;
 import ru.yandex.practicum.filmorate.dal.MpaRatingDbStorage;
+import ru.yandex.practicum.filmorate.dal.UserDbStorage;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.NewFilmRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
@@ -19,6 +21,7 @@ import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 
+import java.time.Instant;
 import java.util.*;
 
 @Service
@@ -29,14 +32,18 @@ public class FilmService {
     private final UserStorage userStorage;
     private final MpaRatingDbStorage mpaStorage;
     private final GenreDbStorage genreStorage;
+    private final UserDbStorage userDbStorage;
+    private final FeedEventsDb feedEventsDb;
 
     public FilmService(FilmStorage filmStorage, Validator validator, UserStorage userStorage,
-                       MpaRatingDbStorage mpaStorage, GenreDbStorage genreStorage) {
+                       MpaRatingDbStorage mpaStorage, GenreDbStorage genreStorage, UserDbStorage userDbStorage, FeedEventsDb feedEventsDb) {
         this.filmStorage = filmStorage;
         this.validator = validator;
         this.userStorage = userStorage;
         this.mpaStorage = mpaStorage;
         this.genreStorage = genreStorage;
+        this.userDbStorage = userDbStorage;
+        this.feedEventsDb = feedEventsDb;
     }
 
     public Collection<FilmDto> findAll() {
@@ -112,6 +119,7 @@ public class FilmService {
         }
         log.info("Фильм с id {} получил лайк от пользователя {}", film, userId);
         filmStorage.addLike(filmId, userId);
+        feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "ADD", filmId);
     }
 
     public void removeLike(long filmId, long userId) {
@@ -121,6 +129,7 @@ public class FilmService {
                 .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
         log.info("Пользователя с id {} удалил лайк с фильма {}", userId, filmId);
         filmStorage.removeLike(filmId, userId);
+        feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "REMOVE", filmId);
     }
 
     public List<FilmDto> getPopularFilms(int count) {

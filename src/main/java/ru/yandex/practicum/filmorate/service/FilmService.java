@@ -20,10 +20,13 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class FilmService {
+    private static final Set<String> ALLOWED_SEARCH_BY = Set.of("title", "director");
+
     private final FilmStorage filmStorage;
     private final Validator validator;
     private final UserStorage userStorage;
@@ -128,5 +131,41 @@ public class FilmService {
         log.info("Получение списка из {} популярных фильмов", count);
         List<Film> films = filmStorage.getPopularFilms(count);
         return FilmMapper.mapToListFilmDto(films);
+    }
+
+    public List<FilmDto> searchFilms(String query, String by) {
+        if (query == null || query.isBlank()) {
+            throw new ValidationException("Параметр query не может быть пустым");
+        }
+
+        List<String> byValues = parseBy(by);
+        log.info("Поиск фильмов: query='{}', by={}", query, byValues);
+
+        List<Film> films = filmStorage.searchFilms(query, byValues);
+        return FilmMapper.mapToListFilmDto(films);
+    }
+
+    private List<String> parseBy(String by) {
+        if (by == null || by.isBlank()) {
+            return List.of("title");
+        }
+
+        List<String> values = Arrays.stream(by.split(","))
+                .map(String::trim)
+                .map(String::toLowerCase)
+                .filter(value -> !value.isEmpty())
+                .collect(Collectors.toList());
+
+        if (values.isEmpty()) {
+            return List.of("title");
+        }
+
+        for (String value : values) {
+            if (!ALLOWED_SEARCH_BY.contains(value)) {
+                throw new ValidationException("Недопустимое значение параметра by: " + value
+                        + ". Допустимые значения: title, director");
+            }
+        }
+        return values;
     }
 }

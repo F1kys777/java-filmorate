@@ -4,6 +4,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.GenreRowMapper;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -15,6 +17,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     private static final String FIND_ALL_QUERY = "SELECT * FROM films";
     private static final String DELETE_QUERY = "DELETE FROM films WHERE id = ?";
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM films WHERE id = ?";
+    private static final String FIND_POPULARS_FILMS = "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.mpa_rating_id, COUNT(DISTINCT fl.user_id) AS likes FROM films f LEFT JOIN film_likes fl ON f.id = fl.film_id WHERE f.id IN (SELECT fg.film_id FROM film_genre fg WHERE fg.genre_id = ?) AND YEAR(f.release_date) = ? GROUP BY f.id, f.name, f.description, f.release_date, f.duration, f.mpa_rating_id ORDER BY likes DESC, f.id ASC LIMIT ?";
     private static final String INSERT_QUERY = "INSERT INTO films(name, description, release_date, duration, mpa_rating_id) VALUES (?, ?, ?, ?, ?)";
     private static final String UPDATE_QUERY = "UPDATE films SET name = ?, description = ?, release_date = ?, duration = ?, mpa_rating_id = ? WHERE id = ?";
     private static final String INSERT_GENRE_QUERY = "INSERT INTO film_genre (film_id, genre_id) VALUES (?, ?)";
@@ -131,6 +134,13 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         }
         return films;
     }
+
+    public List<FilmDto> getPopularGenreAndYear(Long count, Long genreId, Long year) {
+        return jdbc.query(FIND_POPULARS_FILMS, new FilmRowMapper(), genreId, year, count).stream()
+                .map(FilmMapper::mapToFilmDto)
+                .toList();
+    }
+
 
     @Override
     public void addLike(long filmId, long userId) {

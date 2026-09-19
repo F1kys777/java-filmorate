@@ -5,8 +5,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dal.mappers.FeedEventsRowMapper;
 import ru.yandex.practicum.filmorate.dto.FeedEventsDto;
-import ru.yandex.practicum.filmorate.model.FeedEvents;
-
 import java.util.List;
 
 @Repository

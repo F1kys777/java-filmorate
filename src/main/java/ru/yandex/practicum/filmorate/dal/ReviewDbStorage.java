@@ -18,7 +18,6 @@ import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.ReviewRating;
 
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 
@@ -47,7 +46,7 @@ public class ReviewDbStorage {
     private static final String DELETE_REVIEW_BY_ID = "DELETE FROM reviews WHERE review_id = ?;";
     private static final String DELETE_LIKE_FROM_REVIEW_RATING = "DELETE FROM reviewRating WHERE user_id = ? AND review_id = ?;";
 
-    public ReviewDto addReview(NewReviewRequest review) {
+    public Review addReview(NewReviewRequest review) {
         try {
             GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
             jdbc.update(connection -> {
@@ -69,7 +68,7 @@ public class ReviewDbStorage {
         }
     }
 
-    public ReviewDto getReviewById(long reviewId) {
+    public Review getReviewById(long reviewId) {
         try {
             Review review = jdbc.queryForObject(
                     FIND_REVIEW_BY_ID_QUERY,
@@ -77,40 +76,26 @@ public class ReviewDbStorage {
                     reviewId
             );
 
-            return rowMapperReview.mapToReviewDto(review);
+            return review;
 
         } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException(
                     "Указанный id: " + reviewId + " отзыва не найден"
             );
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 
-    public ReviewDto updateReview(UpdateReviewRequest reviewRequest) {
+    public Review updateReview(UpdateReviewRequest reviewRequest) {
         Review reviewFromBd = jdbc.queryForObject(FIND_REVIEW_BY_ID_QUERY, rowMapperReview, reviewRequest.getReviewId());
         reviewFromBd = rowMapperReview.updateReviewFields(reviewFromBd, reviewRequest);
         jdbc.update(UPDATE_REVIEW, reviewFromBd.getIsPositive(), reviewFromBd.getContent(), reviewFromBd.getReviewId());
         reviewFromBd = jdbc.queryForObject(FIND_REVIEW_BY_ID_QUERY, rowMapperReview, reviewFromBd.getReviewId());
-        try {
-            return rowMapperReview.mapToReviewDto(reviewFromBd);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        return reviewFromBd;
     }
 
-    public List<ReviewDto> getReviewsById(Long filmId, Long count) {
+    public List<Review> getReviewsById(Long filmId, Long count) {
         try {
-            return jdbc.query(FIND_REVIEWS_BY_FILM_ID, rowMapperReview, filmId, count).stream()
-                    .map(review -> {
-                        try {
-                            return rowMapperReview.mapToReviewDto(review);
-                        } catch (SQLException e) {
-                            throw new RuntimeException(e);
-                        }
-                    })
-                    .toList();
+            return jdbc.query(FIND_REVIEWS_BY_FILM_ID, rowMapperReview, filmId, count);
         } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException(
                     "Указанный filmId: " + filmId + " не найден"

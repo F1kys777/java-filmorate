@@ -12,10 +12,7 @@ import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.filmorate.dal.FilmDbStorage;
 import ru.yandex.practicum.filmorate.dal.MpaRatingDbStorage;
 import ru.yandex.practicum.filmorate.dal.UserDbStorage;
-import ru.yandex.practicum.filmorate.dal.mappers.FilmRowMapper;
-import ru.yandex.practicum.filmorate.dal.mappers.GenreRowMapper;
-import ru.yandex.practicum.filmorate.dal.mappers.MpaRatingRowMapper;
-import ru.yandex.practicum.filmorate.dal.mappers.UserRowMapper;
+import ru.yandex.practicum.filmorate.dal.mappers.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
@@ -32,8 +29,10 @@ import static org.junit.jupiter.api.Assertions.*;
 @JdbcTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@Import({UserDbStorage.class, FilmDbStorage.class, MpaRatingDbStorage.class, UserRowMapper.class, FilmRowMapper.class,
-        GenreRowMapper.class, MpaRatingRowMapper.class
+@Import({UserDbStorage.class, FilmDbStorage.class, MpaRatingDbStorage.class,
+        UserRowMapper.class, FilmRowMapper.class,
+        GenreRowMapper.class, MpaRatingRowMapper.class,
+        DirectorRowMapper.class
 })
 class FilmorateApplicationTests {
 

@@ -6,27 +6,32 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
+import ru.yandex.practicum.filmorate.dal.mappers.DirectorRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.GenreRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.MpaRatingRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.UserRowMapper;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @JdbcTest
 @AutoConfigureTestDatabase
-@Import({FilmDbStorage.class, MpaRatingDbStorage.class, UserDbStorage.class, FilmRowMapper.class,
-        GenreRowMapper.class, MpaRatingRowMapper.class, UserRowMapper.class})
+@Import({FilmDbStorage.class, MpaRatingDbStorage.class, UserDbStorage.class, DirectorDbStorage.class,
+        FilmRowMapper.class, GenreRowMapper.class, MpaRatingRowMapper.class, UserRowMapper.class,
+        DirectorRowMapper.class})
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class FilmSearchDbStorageTest {
     private final FilmDbStorage filmStorage;
     private final UserDbStorage userStorage;
+    private final DirectorDbStorage directorStorage;
 
     private Film makeFilm(String name) {
         Film film = new Film();
@@ -79,6 +84,20 @@ class FilmSearchDbStorageTest {
     }
 
     @Test
+    void shouldFindFilmsByDirectorSubstring() {
+        Director director = directorStorage.create(new Director(null, "Крадомир Тарантино"));
+        Film film = makeFilm("Абсолютно другое название");
+        film.setDirectors(Set.of(director));
+        Film created = filmStorage.updateFilm(film.getId(), film);
+
+        List<Film> result = filmStorage.searchFilms("крад", List.of("director"));
+
+        assertThat(result).hasSize(1)
+                .extracting(Film::getId)
+                .containsExactly(created.getId());
+    }
+
+    @Test
     void shouldSearchByTitleWhenCombinedWithDirector() {
         makeFilm("Крадущийся в ночи");
         makeFilm("Матрица");
@@ -88,6 +107,22 @@ class FilmSearchDbStorageTest {
         assertThat(result).hasSize(1)
                 .extracting(Film::getName)
                 .containsExactly("Крадущийся в ночи");
+    }
+
+    @Test
+    void shouldFindByEitherTitleOrDirectorWhenCombined() {
+        Director director = directorStorage.create(new Director(null, "Крадовски"));
+        Film byTitle = makeFilm("Крадущийся в ночи");
+        Film byDirector = makeFilm("Совершенно другое название");
+        byDirector.setDirectors(Set.of(director));
+        Film updatedByDirector = filmStorage.updateFilm(byDirector.getId(), byDirector);
+        makeFilm("Матрица");
+
+        List<Film> result = filmStorage.searchFilms("крад", List.of("title", "director"));
+
+        assertThat(result)
+                .extracting(Film::getId)
+                .containsExactlyInAnyOrder(byTitle.getId(), updatedByDirector.getId());
     }
 
     @Test

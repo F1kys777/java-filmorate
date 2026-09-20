@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface FilmStorage {
-
     Film addFilm(Film film);
 
     Film updateFilm(long filmId, Film updatedFilm);
@@ -23,6 +22,8 @@ public interface FilmStorage {
     void removeLike(long filmId, long userId);
 
     List<Film> getPopularFilms(int count);
+
+    List<Film> getFilmsByDirector(long directorId, String sortBy);
 
     List<Film> searchFilms(String query, List<String> by);
 }

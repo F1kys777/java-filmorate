@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.Validator;
+import ru.yandex.practicum.filmorate.dal.DirectorDbStorage;
 import ru.yandex.practicum.filmorate.dal.GenreDbStorage;
 import ru.yandex.practicum.filmorate.dal.MpaRatingDbStorage;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
@@ -11,6 +12,7 @@ import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MpaRating;
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class FilmService {
+    private static final Set<String> ALLOWED_SORT_BY = Set.of("year", "likes");
     private static final Set<String> ALLOWED_SEARCH_BY = Set.of("title", "director");
 
     private final FilmStorage filmStorage;
@@ -32,14 +35,17 @@ public class FilmService {
     private final UserStorage userStorage;
     private final MpaRatingDbStorage mpaStorage;
     private final GenreDbStorage genreStorage;
+    private final DirectorDbStorage directorStorage;
 
     public FilmService(FilmStorage filmStorage, Validator validator, UserStorage userStorage,
-                       MpaRatingDbStorage mpaStorage, GenreDbStorage genreStorage) {
+                       MpaRatingDbStorage mpaStorage, GenreDbStorage genreStorage,
+                       DirectorDbStorage directorStorage) {
         this.filmStorage = filmStorage;
         this.validator = validator;
         this.userStorage = userStorage;
         this.mpaStorage = mpaStorage;
         this.genreStorage = genreStorage;
+        this.directorStorage = directorStorage;
     }
 
     public Collection<FilmDto> findAll() {
@@ -77,6 +83,7 @@ public class FilmService {
 
         film.setMpaRating(mpa);
         film.setGenres(genres);
+        film.setDirectors(resolveDirectors(request.getDirectors()));
 
         Film saved = filmStorage.addFilm(film);
         log.info("Фильм {} с id {} успешно создан", film, film.getId());
@@ -96,6 +103,9 @@ public class FilmService {
         }
         if (request.getGenres() != null && !request.getGenres().isEmpty()) {
             film.setGenres(request.getGenres());
+        }
+        if (request.getDirectors() != null) {
+            film.setDirectors(resolveDirectors(request.getDirectors()));
         }
 
         Film updated = filmStorage.updateFilm(filmId, film);
@@ -133,6 +143,19 @@ public class FilmService {
         return FilmMapper.mapToListFilmDto(films);
     }
 
+    public List<FilmDto> getFilmsByDirector(long directorId, String sortBy) {
+        directorStorage.findById(directorId)
+                .orElseThrow(() -> new NotFoundException("Режиссёр с id=" + directorId + " не найден"));
+
+        if (!ALLOWED_SORT_BY.contains(sortBy)) {
+            throw new ValidationException("Параметр sortBy должен быть 'year' или 'likes'");
+        }
+
+        log.info("Получение фильмов режиссёра id={} с сортировкой {}", directorId, sortBy);
+        List<Film> films = filmStorage.getFilmsByDirector(directorId, sortBy);
+        return FilmMapper.mapToListFilmDto(films);
+    }
+
     public List<FilmDto> searchFilms(String query, String by) {
         if (query == null || query.isBlank()) {
             throw new ValidationException("Параметр query не может быть пустым");
@@ -143,6 +166,19 @@ public class FilmService {
 
         List<Film> films = filmStorage.searchFilms(query, byValues);
         return FilmMapper.mapToListFilmDto(films);
+    }
+
+    private Set<Director> resolveDirectors(Set<Director> requested) {
+        Set<Director> resolved = new LinkedHashSet<>();
+        if (requested == null) {
+            return resolved;
+        }
+        for (Director director : requested) {
+            Director full = directorStorage.findById(director.getId())
+                    .orElseThrow(() -> new NotFoundException("Режиссёр с id=" + director.getId() + " не найден"));
+            resolved.add(full);
+        }
+        return resolved;
     }
 
     private List<String> parseBy(String by) {

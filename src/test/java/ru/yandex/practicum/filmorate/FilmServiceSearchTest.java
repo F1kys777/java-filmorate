@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.yandex.practicum.filmorate.Validator;
+import ru.yandex.practicum.filmorate.dal.DirectorDbStorage;
 import ru.yandex.practicum.filmorate.dal.GenreDbStorage;
 import ru.yandex.practicum.filmorate.dal.MpaRatingDbStorage;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
@@ -34,11 +35,13 @@ class FilmServiceSearchTest {
     private MpaRatingDbStorage mpaStorage;
     @Mock
     private GenreDbStorage genreStorage;
+    @Mock
+    private DirectorDbStorage directorStorage;
 
     private FilmService filmService;
 
     private FilmService createService() {
-        return new FilmService(filmStorage, new Validator(), userStorage, mpaStorage, genreStorage);
+        return new FilmService(filmStorage, new Validator(), userStorage, mpaStorage, genreStorage, directorStorage);
     }
 
     @Test

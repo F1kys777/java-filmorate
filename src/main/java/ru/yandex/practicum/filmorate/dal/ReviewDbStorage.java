@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dal.mappers.ReviewRatingRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.RowMapperReview;
 import ru.yandex.practicum.filmorate.dto.NewReviewRequest;
-import ru.yandex.practicum.filmorate.dto.ReviewDto;
 import ru.yandex.practicum.filmorate.dto.UpdateReviewRequest;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;

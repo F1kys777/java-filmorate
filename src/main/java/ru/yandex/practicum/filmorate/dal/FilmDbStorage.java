@@ -4,8 +4,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.GenreRowMapper;
-import ru.yandex.practicum.filmorate.dto.FilmDto;
-import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -135,10 +133,8 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         return films;
     }
 
-    public List<FilmDto> getPopularGenreAndYear(Long count, Long genreId, Long year) {
-        return jdbc.query(FIND_POPULARS_FILMS, new FilmRowMapper(), genreId, year, count).stream()
-                .map(FilmMapper::mapToFilmDto)
-                .toList();
+    public List<Film> getPopularGenreAndYear(Long count, Long genreId, Long year) {
+        return jdbc.query(FIND_POPULARS_FILMS, new FilmRowMapper(), genreId, year, count);
     }
 
 

@@ -48,7 +48,7 @@ public class FilmService {
 
     public Collection<FilmDto> getPopularGenreAndYear(Long count, Long genre, Long year) {
         log.info("Получение популярных фильмов по годам и жанру");
-        return filmDbStorage.getPopularGenreAndYear(count, genre, year);
+        return filmDbStorage.getPopularGenreAndYear(count, genre, year).stream().map(FilmMapper::mapToFilmDto).toList();
     }
 
     public FilmDto getFilmById(long filmId) {

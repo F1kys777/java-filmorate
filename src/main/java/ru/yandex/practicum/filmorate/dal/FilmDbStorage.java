@@ -27,6 +27,10 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     private static final String SELECT_LIKES_QUERY = "SELECT user_id FROM film_likes WHERE film_id = ?";
     private static final String SELECT_POPULAR_QUERY = "SELECT f.*, COUNT(l.user_id) AS like_count FROM films f LEFT JOIN film_likes l ON f.id = l.film_id GROUP BY f.id ORDER BY like_count DESC LIMIT ?";
     private static final String SELECT_MPA_QUERY = "SELECT mpa_rating_id FROM films WHERE id = ?";
+    private static final String SELECT_COMMON_FRIEND_FILM_QUERY = "SELECT f.*, COUNT(l.user_id) AS like_count " +
+            "FROM films f JOIN film_likes l ON f.id = l.film_id JOIN film_likes l1 ON f.id = l1.film_id " +
+            "JOIN film_likes l2 ON f.id = l2.film_id WHERE l1.user_id = ? AND l2.user_id = ? GROUP BY f.id " +
+            "ORDER BY like_count";
 
     private static final String SELECT_DIRECTORS_QUERY =
             "SELECT d.id, d.name FROM film_director fd JOIN directors d ON fd.director_id = d.id " +

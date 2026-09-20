@@ -63,17 +63,18 @@ public class FilmController {
         return filmService.getPopularFilms(count);
     }
 
+    @GetMapping("/director/{directorId}")
+    public List<FilmDto> getFilmsByDirector(@PathVariable long directorId,
+                                            @RequestParam String sortBy) {
+        log.debug("Запрос фильмов режиссёра id={}, сортировка {}", directorId, sortBy);
+        return filmService.getFilmsByDirector(directorId, sortBy);
+    }
+
     @PutMapping
     public FilmDto update(@RequestBody UpdateFilmRequest request) {
         if (request.getId() == null) {
             throw new ValidationException("Id должен быть указан");
         }
         return filmService.update(request.getId(), request);
-    }
-
-    @GetMapping("/common")
-    public List<FilmDto> getCommonFriendsFilms(@RequestParam long userId, @RequestParam long friendId) {
-        log.debug("Запрос на получение списка общих фильмов {} и {}", userId, friendId);
-        return filmService.getCommonFriendsFilms(userId, friendId);
     }
 }

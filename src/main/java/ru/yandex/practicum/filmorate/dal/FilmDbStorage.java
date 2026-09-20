@@ -29,6 +29,23 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             "FROM films f JOIN film_likes l ON f.id = l.film_id JOIN film_likes l1 ON f.id = l1.film_id " +
             "JOIN film_likes l2 ON f.id = l2.film_id WHERE l1.user_id = ? AND l2.user_id = ? GROUP BY f.id " +
             "ORDER BY like_count";
+    private static final String RECOMMENDATIONS_QUERY = "SELECT f.*" +
+            "        FROM films f" +
+            "        JOIN film_likes fl ON f.id = fl.film_id" +
+            "        JOIN (" +
+            "            SELECT fl2.user_id" +
+            "            FROM film_likes fl1" +
+            "            JOIN film_likes fl2 ON fl1.film_id = fl2.film_id" +
+            "            WHERE fl1.user_id = ? AND fl2.user_id <> ?" +
+            "            GROUP BY fl2.user_id" +
+            "            ORDER BY COUNT(*) DESC" +
+            "            LIMIT 10" +
+            "        ) sim ON sim.user_id = fl.user_id" +
+            "        WHERE NOT EXISTS (" +
+            "            SELECT 1 FROM film_likes" +
+            "            WHERE user_id = ? AND film_id = f.id" +
+            "        )" +
+            "        GROUP BY f.id";
 
     private final GenreRowMapper genreRowMapper;
     private final MpaRatingDbStorage mpaStorage;
@@ -164,6 +181,22 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     public List<Film> getCommonFriendsFilms(long userId, long friendId) {
         List<Film> films = jdbc.query(SELECT_COMMON_FRIEND_FILM_QUERY, mapper, userId, friendId);
+        for (Film film : films) {
+            Integer mpaId = jdbc.queryForObject(SELECT_MPA_QUERY, Integer.class, film.getId());
+            if (mpaId != null) {
+                mpaStorage.findById(mpaId).ifPresent(film::setMpaRating);
+            }
+            List<Genre> genres = jdbc.query(SELECT_GENRES_QUERY, genreRowMapper, film.getId());
+            film.setGenres(new LinkedHashSet<>(genres));
+            List<Long> likes = jdbc.queryForList(SELECT_LIKES_QUERY, Long.class, film.getId());
+            film.setLikes(new HashSet<>(likes));
+        }
+        return films;
+    }
+
+    @Override
+    public List<Film> getRecommendations(long userId) {
+        List<Film> films = findMany(RECOMMENDATIONS_QUERY, userId, userId, userId);
         for (Film film : films) {
             Integer mpaId = jdbc.queryForObject(SELECT_MPA_QUERY, Integer.class, film.getId());
             if (mpaId != null) {

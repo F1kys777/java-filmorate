@@ -129,4 +129,10 @@ public class FilmService {
         List<Film> films = filmStorage.getPopularFilms(count);
         return FilmMapper.mapToListFilmDto(films);
     }
+
+    public List<FilmDto> getCommonFriendsFilms(long userId, long friendId) {
+        log.debug("Получение списка общих фильмов {} и {}", userId, friendId);
+        List<Film> films = filmStorage.getCommonFriendsFilms(userId,friendId);
+        return FilmMapper.mapToListFilmDto(films);
+    }
 }

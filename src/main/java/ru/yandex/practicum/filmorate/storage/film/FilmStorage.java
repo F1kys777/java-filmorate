@@ -22,7 +22,7 @@ public interface FilmStorage {
 
     void removeLike(long filmId, long userId);
 
-    List<Film> getPopularFilms(int count);
+    List<Film> getPopularFilms(int count, Long genreId, Long year);
 
     List<Film> getCommonFriendsFilms(long id, long friendId);
 

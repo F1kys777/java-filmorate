@@ -61,10 +61,10 @@ public class FilmService {
         return FilmMapper.mapToListFilmDto(filmStorage.getAllFilms());
     }
 
-    public Collection<FilmDto> getPopularGenreAndYear(Long count, Long genre, Long year) {
+    /*public Collection<FilmDto> getPopularGenreAndYear(Long count, Long genre, Long year) {
         log.info("Получение популярных фильмов по годам и жанру");
         return filmDbStorage.getPopularGenreAndYear(count, genre, year).stream().map(FilmMapper::mapToFilmDto).toList();
-    }
+    }*/
 
     public FilmDto getFilmById(long filmId) {
         log.info("Получение фильма с id {} успешно получен", filmId);
@@ -151,10 +151,10 @@ public class FilmService {
         feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "REMOVE", filmId);
     }
 
-    public List<FilmDto> getPopularFilms(int count) {
+    public List<FilmDto> getPopularFilms(int count, Long genreId, Long year) {
         validator.filmCountValidation(count);
         log.info("Получение списка из {} популярных фильмов", count);
-        List<Film> films = filmStorage.getPopularFilms(count);
+        List<Film> films = filmStorage.getPopularFilms(count, genreId, year);
         return FilmMapper.mapToListFilmDto(films);
     }
 

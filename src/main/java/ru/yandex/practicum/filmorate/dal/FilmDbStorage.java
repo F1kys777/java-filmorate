@@ -279,22 +279,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopularFilms(int count) {
-        List<Film> films = jdbc.query(SELECT_POPULAR_QUERY, mapper, count);
-        for (Film film : films) {
-            Integer mpaId = jdbc.queryForObject(SELECT_MPA_QUERY, Integer.class, film.getId());
-            if (mpaId != null) {
-                mpaStorage.findById(mpaId).ifPresent(film::setMpaRating);
-            }
-            List<Genre> genres = jdbc.query(SELECT_GENRES_QUERY, genreRowMapper, film.getId());
-            film.setGenres(new LinkedHashSet<>(genres));
-            List<Long> likes = jdbc.queryForList(SELECT_LIKES_QUERY, Long.class, film.getId());
-            film.setLikes(new HashSet<>(likes));
-        }
-        return films;
-    }
-
-    @Override
     public List<Film> getRecommendations(long userId) {
         List<Film> films = findMany(RECOMMENDATIONS_QUERY, userId, userId, userId);
         for (Film film : films) {

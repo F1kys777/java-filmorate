@@ -93,8 +93,8 @@ CREATE TABLE IF NOT EXISTS reviewRating
     review_id BIGINT NOT NULL,
     rating    INT    NOT NULL,
     PRIMARY KEY (user_id, review_id),
-    FOREIGN KEY (user_id) REFERENCES users (id),
-    FOREIGN KEY (review_id) REFERENCES reviews (review_id),
+    FOREIGN KEY (user_id) REFERENCES users (id)  ON DELETE CASCADE,
+    FOREIGN KEY (review_id) REFERENCES reviews (review_id)  ON DELETE CASCADE,
     CHECK (rating IN (-1, 1))
 );
 
@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS FeedEvents
     event_type VARCHAR(20) NOT NULL,
     operation  VARCHAR(20) NOT NULL,
     entity_id  BIGINT      NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES Users (id),
+    FOREIGN KEY (user_id) REFERENCES Users (id) ON DELETE CASCADE,
     CHECK (event_type IN ('LIKE', 'REVIEW', 'FRIEND')),
     CHECK (operation IN ('REMOVE', 'ADD', 'UPDATE'))
 );

@@ -19,6 +19,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     private static final String FIND_ALL_QUERY = "SELECT * FROM films";
     private static final String DELETE_QUERY = "DELETE FROM films WHERE id = ?";
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM films WHERE id = ?";
+    private static final String FIND_POPULARS_FILMS = "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.mpa_rating_id, COUNT(DISTINCT fl.user_id) AS likes FROM films f LEFT JOIN film_likes fl ON f.id = fl.film_id WHERE f.id IN (SELECT fg.film_id FROM film_genre fg WHERE fg.genre_id = ?) AND YEAR(f.release_date) = ? GROUP BY f.id, f.name, f.description, f.release_date, f.duration, f.mpa_rating_id ORDER BY likes DESC, f.id ASC LIMIT ?";
     private static final String INSERT_QUERY = "INSERT INTO films(name, description, release_date, duration, mpa_rating_id) VALUES (?, ?, ?, ?, ?)";
     private static final String UPDATE_QUERY = "UPDATE films SET name = ?, description = ?, release_date = ?, duration = ?, mpa_rating_id = ? WHERE id = ?";
     private static final String INSERT_GENRE_QUERY = "INSERT INTO film_genre (film_id, genre_id) VALUES (?, ?)";
@@ -271,6 +272,26 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         film.setLikes(new HashSet<>(likes));
         List<Director> directors = jdbc.query(SELECT_DIRECTORS_QUERY, directorRowMapper, film.getId());
         film.setDirectors(new LinkedHashSet<>(directors));
+    }
+
+    public List<Film> getPopularGenreAndYear(Long count, Long genreId, Long year) {
+        return jdbc.query(FIND_POPULARS_FILMS, new FilmRowMapper(), genreId, year, count);
+    }
+
+    @Override
+    public List<Film> getPopularFilms(int count) {
+        List<Film> films = jdbc.query(SELECT_POPULAR_QUERY, mapper, count);
+        for (Film film : films) {
+            Integer mpaId = jdbc.queryForObject(SELECT_MPA_QUERY, Integer.class, film.getId());
+            if (mpaId != null) {
+                mpaStorage.findById(mpaId).ifPresent(film::setMpaRating);
+            }
+            List<Genre> genres = jdbc.query(SELECT_GENRES_QUERY, genreRowMapper, film.getId());
+            film.setGenres(new LinkedHashSet<>(genres));
+            List<Long> likes = jdbc.queryForList(SELECT_LIKES_QUERY, Long.class, film.getId());
+            film.setLikes(new HashSet<>(likes));
+        }
+        return films;
     }
 
     @Override

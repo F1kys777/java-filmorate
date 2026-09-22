@@ -58,8 +58,16 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<FilmDto> getPopular(@RequestParam(defaultValue = "10") int count) {
-        log.debug("Запрос на получение списка популярных фильмов со значение count {}", count);
+    public Collection<FilmDto> getPopular(
+            @RequestParam(defaultValue = "1000") int count,
+            @RequestParam(required = false) Long genreId,
+            @RequestParam(required = false) Long year) {
+
+        log.debug("Запрос популярных фильмов: count={}, genreId={}, year={}", count, genreId, year);
+
+        if (genreId != null && year != null) {
+            return filmService.getPopularGenreAndYear((long) count, genreId, year);
+        }
         return filmService.getPopularFilms(count);
     }
 

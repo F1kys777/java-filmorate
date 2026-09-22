@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.Validator;
 import ru.yandex.practicum.filmorate.dal.DirectorDbStorage;
 import ru.yandex.practicum.filmorate.dal.FeedEventsDb;
+import ru.yandex.practicum.filmorate.dal.FilmDbStorage;
 import ru.yandex.practicum.filmorate.dal.GenreDbStorage;
 import ru.yandex.practicum.filmorate.dal.MpaRatingDbStorage;
 import ru.yandex.practicum.filmorate.dal.UserDbStorage;
@@ -39,10 +40,11 @@ public class FilmService {
     private final DirectorDbStorage directorStorage;
     private final UserDbStorage userDbStorage;
     private final FeedEventsDb feedEventsDb;
+    private final FilmDbStorage filmDbStorage;
 
     public FilmService(FilmStorage filmStorage, Validator validator, UserStorage userStorage,
                        MpaRatingDbStorage mpaStorage, GenreDbStorage genreStorage,
-                       DirectorDbStorage directorStorage,UserDbStorage userDbStorage, FeedEventsDb feedEventsDb) {
+                       DirectorDbStorage directorStorage,UserDbStorage userDbStorage, FeedEventsDb feedEventsDb,FilmDbStorage filmDbStorage) {
         this.filmStorage = filmStorage;
         this.validator = validator;
         this.userStorage = userStorage;
@@ -51,11 +53,17 @@ public class FilmService {
         this.directorStorage = directorStorage;
         this.userDbStorage = userDbStorage;
         this.feedEventsDb = feedEventsDb;
+        this.filmDbStorage = filmDbStorage;
     }
 
     public Collection<FilmDto> findAll() {
         log.info("Получение списка всех фильмов");
         return FilmMapper.mapToListFilmDto(filmStorage.getAllFilms());
+    }
+
+    public Collection<FilmDto> getPopularGenreAndYear(Long count, Long genre, Long year) {
+        log.info("Получение популярных фильмов по годам и жанру");
+        return filmDbStorage.getPopularGenreAndYear(count, genre, year).stream().map(FilmMapper::mapToFilmDto).toList();
     }
 
     public FilmDto getFilmById(long filmId) {

@@ -217,4 +217,13 @@ public class FilmService {
                 .orElseThrow(() -> new NotFoundException("Фильм не найден"));
         filmStorage.deleteFilm(film);
     }
+
+    public List<FilmDto> getRecommendations(long userId) {
+        userStorage.getUserById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+
+        log.info("Получение рекомендаций для пользователя {}", userId);
+        List<Film> films = filmStorage.getRecommendations(userId);
+        return FilmMapper.mapToListFilmDto(films);
+    }
 }

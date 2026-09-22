@@ -70,11 +70,24 @@ public class FilmController {
         return filmService.getFilmsByDirector(directorId, sortBy);
     }
 
+    @GetMapping("/search")
+    public List<FilmDto> search(@RequestParam String query,
+                                @RequestParam(defaultValue = "title") String by) {
+        log.debug("Поиск фильмов: query={}, by={}", query, by);
+        return filmService.searchFilms(query, by);
+    }
+
     @PutMapping
     public FilmDto update(@RequestBody UpdateFilmRequest request) {
         if (request.getId() == null) {
             throw new ValidationException("Id должен быть указан");
         }
         return filmService.update(request.getId(), request);
+    }
+
+    @GetMapping("/common")
+    public List<FilmDto> getCommonFriendsFilms(@RequestParam long userId, @RequestParam long friendId) {
+        log.debug("Запрос на получение списка общих фильмов {} и {}", userId, friendId);
+        return filmService.getCommonFriendsFilms(userId, friendId);
     }
 }

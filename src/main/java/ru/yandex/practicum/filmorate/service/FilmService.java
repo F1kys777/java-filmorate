@@ -22,11 +22,13 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class FilmService {
     private static final Set<String> ALLOWED_SORT_BY = Set.of("year", "likes");
+    private static final Set<String> ALLOWED_SEARCH_BY = Set.of("title", "director");
 
     private final FilmStorage filmStorage;
     private final Validator validator;
@@ -141,6 +143,12 @@ public class FilmService {
         return FilmMapper.mapToListFilmDto(films);
     }
 
+    public List<FilmDto> getCommonFriendsFilms(long userId, long friendId) {
+        log.debug("Получение списка общих фильмов {} и {}", userId, friendId);
+        List<Film> films = filmStorage.getCommonFriendsFilms(userId,friendId);
+        return FilmMapper.mapToListFilmDto(films);
+    }
+
     public List<FilmDto> getFilmsByDirector(long directorId, String sortBy) {
         directorStorage.findById(directorId)
                 .orElseThrow(() -> new NotFoundException("Режиссёр с id=" + directorId + " не найден"));
@@ -151,6 +159,18 @@ public class FilmService {
 
         log.info("Получение фильмов режиссёра id={} с сортировкой {}", directorId, sortBy);
         List<Film> films = filmStorage.getFilmsByDirector(directorId, sortBy);
+        return FilmMapper.mapToListFilmDto(films);
+    }
+
+    public List<FilmDto> searchFilms(String query, String by) {
+        if (query == null || query.isBlank()) {
+            throw new ValidationException("Параметр query не может быть пустым");
+        }
+
+        List<String> byValues = parseBy(by);
+        log.info("Поиск фильмов: query='{}', by={}", query, byValues);
+
+        List<Film> films = filmStorage.searchFilms(query, byValues);
         return FilmMapper.mapToListFilmDto(films);
     }
 
@@ -165,5 +185,29 @@ public class FilmService {
             resolved.add(full);
         }
         return resolved;
+    }
+
+    private List<String> parseBy(String by) {
+        if (by == null || by.isBlank()) {
+            return List.of("title");
+        }
+
+        List<String> values = Arrays.stream(by.split(","))
+                .map(String::trim)
+                .map(String::toLowerCase)
+                .filter(value -> !value.isEmpty())
+                .collect(Collectors.toList());
+
+        if (values.isEmpty()) {
+            return List.of("title");
+        }
+
+        for (String value : values) {
+            if (!ALLOWED_SEARCH_BY.contains(value)) {
+                throw new ValidationException("Недопустимое значение параметра by: " + value
+                        + ". Допустимые значения: title, director");
+            }
+        }
+        return values;
     }
 }

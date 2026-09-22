@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.springframework.context.annotation.Import;
+import ru.yandex.practicum.filmorate.dal.DirectorDbStorage;
 import ru.yandex.practicum.filmorate.dal.FilmDbStorage;
 import ru.yandex.practicum.filmorate.dal.MpaRatingDbStorage;
 import ru.yandex.practicum.filmorate.dal.UserDbStorage;
@@ -29,9 +30,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @JdbcTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@Import({UserDbStorage.class, FilmDbStorage.class, MpaRatingDbStorage.class,
-        UserRowMapper.class, FilmRowMapper.class,
-        GenreRowMapper.class, MpaRatingRowMapper.class,
+@Import({UserDbStorage.class, FilmDbStorage.class, MpaRatingDbStorage.class, DirectorDbStorage.class,
+        UserRowMapper.class, FilmRowMapper.class, GenreRowMapper.class, MpaRatingRowMapper.class,
         DirectorRowMapper.class
 })
 class FilmorateApplicationTests {

@@ -27,6 +27,10 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     private static final String SELECT_LIKES_QUERY = "SELECT user_id FROM film_likes WHERE film_id = ?";
     private static final String SELECT_POPULAR_QUERY = "SELECT f.*, COUNT(l.user_id) AS like_count FROM films f LEFT JOIN film_likes l ON f.id = l.film_id GROUP BY f.id ORDER BY like_count DESC LIMIT ?";
     private static final String SELECT_MPA_QUERY = "SELECT mpa_rating_id FROM films WHERE id = ?";
+    private static final String SELECT_COMMON_FRIEND_FILM_QUERY = "SELECT f.*, COUNT(l.user_id) AS like_count " +
+            "FROM films f JOIN film_likes l ON f.id = l.film_id JOIN film_likes l1 ON f.id = l1.film_id " +
+            "JOIN film_likes l2 ON f.id = l2.film_id WHERE l1.user_id = ? AND l2.user_id = ? GROUP BY f.id " +
+            "ORDER BY like_count";
 
     private static final String SELECT_DIRECTORS_QUERY =
             "SELECT d.id, d.name FROM film_director fd JOIN directors d ON fd.director_id = d.id " +
@@ -44,6 +48,33 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
                     "GROUP BY f.id " +
                     "ORDER BY like_count DESC";
 
+    private static final String SEARCH_BY_TITLE_QUERY =
+            "SELECT f.*, COUNT(l.user_id) AS like_count " +
+                    "FROM films f " +
+                    "LEFT JOIN film_likes l ON f.id = l.film_id " +
+                    "WHERE LOWER(f.name) LIKE LOWER(CONCAT('%', ?, '%')) " +
+                    "GROUP BY f.id " +
+                    "ORDER BY like_count DESC";
+    private static final String SEARCH_BY_DIRECTOR_QUERY =
+            "SELECT f.*, COUNT(l.user_id) AS like_count " +
+                    "FROM films f " +
+                    "JOIN film_director fd ON f.id = fd.film_id " +
+                    "JOIN directors d ON fd.director_id = d.id " +
+                    "LEFT JOIN film_likes l ON f.id = l.film_id " +
+                    "WHERE LOWER(d.name) LIKE LOWER(CONCAT('%', ?, '%')) " +
+                    "GROUP BY f.id " +
+                    "ORDER BY like_count DESC";
+    private static final String SEARCH_BY_TITLE_OR_DIRECTOR_QUERY =
+            "SELECT f.*, COUNT(l.user_id) AS like_count " +
+                    "FROM films f " +
+                    "LEFT JOIN film_director fd ON f.id = fd.film_id " +
+                    "LEFT JOIN directors d ON fd.director_id = d.id " +
+                    "LEFT JOIN film_likes l ON f.id = l.film_id " +
+                    "WHERE LOWER(f.name) LIKE LOWER(CONCAT('%', ?, '%')) " +
+                    "   OR LOWER(d.name) LIKE LOWER(CONCAT('%', ?, '%')) " +
+                    "GROUP BY f.id " +
+                    "ORDER BY like_count DESC";
+
     private final GenreRowMapper genreRowMapper;
     private final DirectorRowMapper directorRowMapper;
     private final MpaRatingDbStorage mpaStorage;
@@ -57,6 +88,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     }
 
     public Film addFilm(Film film) {
+
         Long mpaRatingId;
         if (film.getMpaRating() != null) {
             mpaRatingId = film.getMpaRating().getId();
@@ -87,6 +119,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     }
 
     public Film updateFilm(long filmId, Film updatedFilm) {
+
         Long mpaRatingId;
         if (updatedFilm.getMpaRating() != null) {
             mpaRatingId = updatedFilm.getMpaRating().getId();
@@ -119,6 +152,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         }
         return updatedFilm;
     }
+
 
     public Film deleteFilm(Film film) {
         update(DELETE_QUERY, film.getId());
@@ -161,6 +195,41 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         String query = "likes".equals(sortBy) ? SELECT_FILMS_BY_DIRECTOR_LIKES_QUERY : SELECT_FILMS_BY_DIRECTOR_YEAR_QUERY;
         List<Film> films = jdbc.query(query, mapper, directorId);
         films.forEach(this::enrichFilm);
+        return films;
+    }
+
+    @Override
+    public List<Film> searchFilms(String query, List<String> by) {
+        boolean byTitle = by.contains("title");
+        boolean byDirector = by.contains("director");
+
+        List<Film> films;
+        if (byTitle && byDirector) {
+            films = jdbc.query(SEARCH_BY_TITLE_OR_DIRECTOR_QUERY, mapper, query, query);
+        } else if (byTitle) {
+            films = jdbc.query(SEARCH_BY_TITLE_QUERY, mapper, query);
+        } else if (byDirector) {
+            films = jdbc.query(SEARCH_BY_DIRECTOR_QUERY, mapper, query);
+        } else {
+            return List.of();
+        }
+
+        films.forEach(this::enrichFilm);
+        return films;
+    }
+
+    public List<Film> getCommonFriendsFilms(long userId, long friendId) {
+        List<Film> films = jdbc.query(SELECT_COMMON_FRIEND_FILM_QUERY, mapper, userId, friendId);
+        for (Film film : films) {
+            Integer mpaId = jdbc.queryForObject(SELECT_MPA_QUERY, Integer.class, film.getId());
+            if (mpaId != null) {
+                mpaStorage.findById(mpaId).ifPresent(film::setMpaRating);
+            }
+            List<Genre> genres = jdbc.query(SELECT_GENRES_QUERY, genreRowMapper, film.getId());
+            film.setGenres(new LinkedHashSet<>(genres));
+            List<Long> likes = jdbc.queryForList(SELECT_LIKES_QUERY, Long.class, film.getId());
+            film.setLikes(new HashSet<>(likes));
+        }
         return films;
     }
 

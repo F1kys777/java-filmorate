@@ -210,4 +210,11 @@ public class FilmService {
         }
         return values;
     }
+
+    public void remove(long filmId) {
+        log.debug("Удаление фильма с id {}", filmId);
+        Film film = filmStorage.getFilmById(filmId)
+                .orElseThrow(() -> new NotFoundException("Фильм не найден"));
+        filmStorage.deleteFilm(film);
+    }
 }

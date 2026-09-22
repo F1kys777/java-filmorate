@@ -76,4 +76,10 @@ public class UserController {
         }
         return userService.update(request.getId(), request);
     }
+
+    @DeleteMapping("/{userId}")
+    public void remove(@PathVariable long userId) {
+        log.debug("Запрос на удаление пользователя с id {}", userId);
+        userService.remove(userId);
+    }
 }

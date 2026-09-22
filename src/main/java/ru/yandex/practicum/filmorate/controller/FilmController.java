@@ -90,4 +90,10 @@ public class FilmController {
         log.debug("Запрос на получение списка общих фильмов {} и {}", userId, friendId);
         return filmService.getCommonFriendsFilms(userId, friendId);
     }
+
+    @DeleteMapping("/{filmId}")
+    public void remove(@PathVariable long filmId) {
+        log.debug("Запрос на удаление фильма с id {}", filmId);
+        filmService.remove(filmId);
+    }
 }

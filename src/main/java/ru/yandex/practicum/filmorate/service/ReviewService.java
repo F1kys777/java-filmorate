@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.dal.mappers.RowMapperReview;
 import ru.yandex.practicum.filmorate.dto.NewReviewRequest;
 import ru.yandex.practicum.filmorate.dto.ReviewDto;
 import ru.yandex.practicum.filmorate.dto.UpdateReviewRequest;
+import ru.yandex.practicum.filmorate.model.Review;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -46,8 +47,16 @@ public class ReviewService {
     }
 
     public List<ReviewDto> getReviewsById(Long filmId, Long count) {
-        filmService.getFilmById(filmId);
-        return reviewDbStorage.getReviewsById(filmId, count).stream()
+        List<Review> reviews;
+
+        if (filmId == null) {
+            reviews = reviewDbStorage.getAllReviews(count);
+        } else {
+            filmService.getFilmById(filmId);
+            reviews = reviewDbStorage.getReviewsById(filmId, count);
+        }
+
+        return reviews.stream()
                 .map(review -> {
                     try {
                         return rowMapperReview.mapToReviewDto(review);

@@ -44,6 +44,12 @@ public class ReviewDbStorage {
             " review_id = ?";
     private static final String DELETE_REVIEW_BY_ID = "DELETE FROM reviews WHERE review_id = ?;";
     private static final String DELETE_LIKE_FROM_REVIEW_RATING = "DELETE FROM reviewRating WHERE user_id = ? AND review_id = ?;";
+    private static final String FIND_ALL_REVIEWS_QUERY =
+            "SELECT * FROM reviews ORDER BY useful DESC LIMIT ?";
+
+    public List<Review> getAllReviews(Long count) {
+        return jdbc.query(FIND_ALL_REVIEWS_QUERY, rowMapperReview, count);
+    }
 
     public Review addReview(NewReviewRequest review) {
         try {

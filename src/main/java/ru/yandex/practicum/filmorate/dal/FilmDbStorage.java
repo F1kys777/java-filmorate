@@ -10,6 +10,8 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.model.Genre;
 
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.util.*;
 
 @Repository
@@ -95,6 +97,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     private final GenreRowMapper genreRowMapper;
     private final DirectorRowMapper directorRowMapper;
     private final MpaRatingDbStorage mpaStorage;
+
 
     public FilmDbStorage(JdbcTemplate jdbc, FilmRowMapper mapper, GenreRowMapper genreRowMapper,
                          DirectorRowMapper directorRowMapper, MpaRatingDbStorage mpaStorage) {
@@ -190,9 +193,16 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         return films;
     }
 
-    @Override
     public void addLike(long filmId, long userId) {
-        jdbc.update(INSERT_LIKE_QUERY, filmId, userId);
+        jdbc.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(
+                    INSERT_LIKE_QUERY,
+                    Statement.RETURN_GENERATED_KEYS
+            );
+            ps.setLong(1, filmId);
+            ps.setLong(2, userId);
+            return ps;
+        });
     }
 
     @Override

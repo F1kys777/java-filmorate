@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.Validator;
+import ru.yandex.practicum.filmorate.dal.FeedEventsDb;
+import ru.yandex.practicum.filmorate.dto.FeedEventsDto;
 import ru.yandex.practicum.filmorate.dto.NewUserRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.UserDto;
@@ -11,7 +13,6 @@ import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.FriendshipStatus;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
-
 import java.util.*;
 
 @Service
@@ -19,15 +20,21 @@ import java.util.*;
 public class UserService {
     private final UserStorage userStorage;
     private final Validator validator;
+    private final FeedEventsDb feedEventsDb;
 
-    public UserService(UserStorage userStorage, Validator validator) {
+    public UserService(UserStorage userStorage, Validator validator, FeedEventsDb feedEventsDb) {
         this.userStorage = userStorage;
         this.validator = validator;
+        this.feedEventsDb = feedEventsDb;
     }
 
     public Collection<UserDto> findAll() {
         log.info("Получение списка всех пользователей");
         return UserMapper.mapToListUserDto(userStorage.getAllUsers());
+    }
+
+    public Collection<FeedEventsDto> getFeedsFriends(Long userId) {
+        return feedEventsDb.getEvents(userId);
     }
 
     public UserDto getUserById(long userId) {
@@ -72,6 +79,8 @@ public class UserService {
         getUserById(userId);
         getUserById(friendId);
         userStorage.addFriend(userId, friendId, FriendshipStatus.CONFIRMED);
+        feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "FRIEND", "ADD",
+                friendId);
         log.info("Пользователь {} добавил в друзья {}", userId, friendId);
     }
 
@@ -80,6 +89,8 @@ public class UserService {
         getUserById(friendId);
         log.debug("Удаление из друзей: userId={}, friendId={}", userId, friendId);
         userStorage.removeFriend(userId, friendId);
+        feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "FRIEND", "REMOVE",
+                friendId);
     }
 
     public List<UserDto> getFriends(long userId) {

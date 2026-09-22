@@ -3,11 +3,14 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dal.FeedEventsDb;
 import ru.yandex.practicum.filmorate.dal.ReviewDbStorage;
+import ru.yandex.practicum.filmorate.dal.mappers.RowMapperReview;
 import ru.yandex.practicum.filmorate.dto.NewReviewRequest;
 import ru.yandex.practicum.filmorate.dto.ReviewDto;
 import ru.yandex.practicum.filmorate.dto.UpdateReviewRequest;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -18,20 +21,41 @@ public class ReviewService {
     private final FilmService filmService;
     private final UserService userService;
     private final ReviewDbStorage reviewDbStorage;
+    private final FeedEventsDb feedEventsDb;
+    private final RowMapperReview rowMapperReview;
 
     public ReviewDto createReview(NewReviewRequest review) {
         filmService.getFilmById(review.getFilmId());
         userService.getUserById(review.getUserId());
-        return reviewDbStorage.addReview(review);
+        try {
+            ReviewDto reviewDto = rowMapperReview.mapToReviewDto(reviewDbStorage.addReview(review));
+            feedEventsDb.insertEvents(System.currentTimeMillis(), review.getUserId(), "REVIEW", "ADD",
+                    reviewDto.getReviewId());
+            return reviewDto;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public ReviewDto getReviewById(Long id) {
-        return reviewDbStorage.getReviewById(id);
+        try {
+            return rowMapperReview.mapToReviewDto(reviewDbStorage.getReviewById(id));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public List<ReviewDto> getReviewsById(Long filmId, Long count) {
         filmService.getFilmById(filmId);
-        return reviewDbStorage.getReviewsById(filmId, count);
+        return reviewDbStorage.getReviewsById(filmId, count).stream()
+                .map(review -> {
+                    try {
+                        return rowMapperReview.mapToReviewDto(review);
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .toList();
     }
 
     public Map<String, String> addLikeToReview(Long id, Long userId) {
@@ -63,8 +87,10 @@ public class ReviewService {
     }
 
     public Map<String, String> deleteReviewById(Long id) {
-        getReviewById(id);
+        ReviewDto reviewDto = getReviewById(id);
         reviewDbStorage.deleteReviewById(id);
+        feedEventsDb.insertEvents(System.currentTimeMillis(), reviewDto.getUserId(), "REVIEW", "REMOVE",
+                reviewDto.getReviewId());
         return Map.of("Сообщение: ", "отзыв успешно удален");
     }
 
@@ -72,6 +98,13 @@ public class ReviewService {
         filmService.getFilmById(review.getFilmId());
         userService.getUserById(review.getUserId());
         reviewDbStorage.getReviewById(review.getReviewId());
-        return reviewDbStorage.updateReview(review);
+        try {
+            ReviewDto reviewDto = rowMapperReview.mapToReviewDto(reviewDbStorage.updateReview(review));
+            feedEventsDb.insertEvents(System.currentTimeMillis(), review.getUserId(), "REVIEW", "UPDATE",
+                    reviewDto.getReviewId());
+            return reviewDto;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

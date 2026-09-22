@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.dto.FeedEventsDto;
 import ru.yandex.practicum.filmorate.dto.NewUserRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.UserDto;
@@ -65,6 +66,12 @@ public class UserController {
     public List<UserDto> getFriends(@PathVariable long id) {
         log.debug("Запрос на получение всех друзей пользователя с id {}", id);
         return userService.getFriends(id);
+    }
+
+    @GetMapping("/{id}/feed")
+    public Collection<FeedEventsDto> getFeeds(@PathVariable long id) {
+        log.debug("Запрос на получение ленты событий всех друзей пользователя с id {}", id);
+        return userService.getFeedsFriends(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")

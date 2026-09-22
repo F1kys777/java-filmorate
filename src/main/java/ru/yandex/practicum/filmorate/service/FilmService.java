@@ -114,7 +114,7 @@ public class FilmService {
         if (request.getMpa() != null) {
             film.setMpaRating(request.getMpa());
         }
-        if (request.getGenres() != null && !request.getGenres().isEmpty()) {
+        if (request.getGenres() != null) {
             film.setGenres(request.getGenres());
         }
         if (request.getDirectors() != null) {

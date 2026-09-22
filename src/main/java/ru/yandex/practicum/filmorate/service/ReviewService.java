@@ -30,7 +30,7 @@ public class ReviewService {
         userService.getUserById(review.getUserId());
         try {
             ReviewDto reviewDto = rowMapperReview.mapToReviewDto(reviewDbStorage.addReview(review));
-            feedEventsDb.insertEvents(System.currentTimeMillis(), review.getUserId(), "REVIEW", "ADD",
+            feedEventsDb.insertEvents(System.currentTimeMillis(), reviewDto.getUserId(), "REVIEW", "ADD",
                     reviewDto.getReviewId());
             return reviewDto;
         } catch (SQLException e) {
@@ -71,6 +71,7 @@ public class ReviewService {
         reviewDbStorage.getReviewById(id);
         userService.getUserById(userId);
         reviewDbStorage.addLikeToReview(id, userId);
+        feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "ADD", id);
         return Map.of("Сообщение: ", "лайк успешно поставлен");
     }
 
@@ -78,6 +79,7 @@ public class ReviewService {
         reviewDbStorage.getReviewById(id);
         userService.getUserById(userId);
         reviewDbStorage.removeLikeFromReview(id, userId);
+        feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "REMOVE", id);
         return Map.of("Сообщение: ", "лайк успешно удален");
     }
 
@@ -85,6 +87,7 @@ public class ReviewService {
         reviewDbStorage.getReviewById(id);
         userService.getUserById(userId);
         reviewDbStorage.removeDislikeFromReview(id, userId);
+        feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "REMOVE", id);
         return Map.of("Сообщение: ", "дизлайк успешно удален");
     }
 
@@ -92,6 +95,7 @@ public class ReviewService {
         reviewDbStorage.getReviewById(id);
         userService.getUserById(userId);
         reviewDbStorage.addDislikeToReview(id, userId);
+        feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "ADD", id);
         return Map.of("Сообщение: ", "дизлайк успешно поставлен");
     }
 
@@ -109,7 +113,7 @@ public class ReviewService {
         reviewDbStorage.getReviewById(review.getReviewId());
         try {
             ReviewDto reviewDto = rowMapperReview.mapToReviewDto(reviewDbStorage.updateReview(review));
-            feedEventsDb.insertEvents(System.currentTimeMillis(), review.getUserId(), "REVIEW", "UPDATE",
+            feedEventsDb.insertEvents(System.currentTimeMillis(), reviewDto.getUserId(), "REVIEW", "UPDATE",
                     reviewDto.getReviewId());
             return reviewDto;
         } catch (SQLException e) {

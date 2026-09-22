@@ -91,7 +91,7 @@ public class UserService {
     public List<UserDto> getCommonFriends(long userId, long otherId) {
         getUserById(userId);
         getUserById(otherId);
-        List<User> mutualFriends = userStorage.getCommonFriends(userId,otherId);
+        List<User> mutualFriends = userStorage.getCommonFriends(userId, otherId);
 
         log.info("Получение общих друзей пользователей userId={} и {}", userId, otherId);
         return UserMapper.mapToListUserDto(mutualFriends);

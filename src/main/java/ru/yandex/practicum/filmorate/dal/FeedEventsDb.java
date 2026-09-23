@@ -13,12 +13,12 @@ public class FeedEventsDb {
     private final JdbcTemplate jdbc;
     private final FeedEventsRowMapper feedEventsRowMapper;
 
-    private static final String INSERT_EVENTS = "INSERT INTO FeedEvents(timestamp, user_id, event_type, " +
+    private static final String INSERT_EVENTS = "INSERT INTO feed_events(timestamp, user_id, event_type, " +
             "operation, entity_id) VALUES (?, ?, ?, ?, ?)";
 
     private static final String GET_EVENTS = """
     SELECT fe.*
-        FROM FeedEvents fe
+        FROM feed_events fe
         WHERE fe.user_id = ?
         ORDER BY fe.timestamp ASC, fe.event_id ASC""";
 

@@ -11,7 +11,6 @@ import ru.yandex.practicum.filmorate.dto.ReviewDto;
 import ru.yandex.practicum.filmorate.dto.UpdateReviewRequest;
 import ru.yandex.practicum.filmorate.model.Review;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -28,22 +27,14 @@ public class ReviewService {
     public ReviewDto createReview(NewReviewRequest review) {
         filmService.getFilmById(review.getFilmId());
         userService.getUserById(review.getUserId());
-        try {
-            ReviewDto reviewDto = rowMapperReview.mapToReviewDto(reviewDbStorage.addReview(review));
-            feedEventsDb.insertEvents(System.currentTimeMillis(), reviewDto.getUserId(), "REVIEW", "ADD",
-                    reviewDto.getReviewId());
-            return reviewDto;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        ReviewDto reviewDto = rowMapperReview.mapToReviewDto(reviewDbStorage.addReview(review));
+        feedEventsDb.insertEvents(System.currentTimeMillis(), reviewDto.getUserId(), "REVIEW", "ADD",
+                reviewDto.getReviewId());
+        return reviewDto;
     }
 
     public ReviewDto getReviewById(Long id) {
-        try {
-            return rowMapperReview.mapToReviewDto(reviewDbStorage.getReviewById(id));
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        return rowMapperReview.mapToReviewDto(reviewDbStorage.getReviewById(id));
     }
 
     public List<ReviewDto> getReviewsById(Long filmId, Long count) {
@@ -57,13 +48,7 @@ public class ReviewService {
         }
 
         return reviews.stream()
-                .map(review -> {
-                    try {
-                        return rowMapperReview.mapToReviewDto(review);
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
+                .map(rowMapperReview::mapToReviewDto)
                 .toList();
     }
 
@@ -71,7 +56,6 @@ public class ReviewService {
         reviewDbStorage.getReviewById(id);
         userService.getUserById(userId);
         reviewDbStorage.addLikeToReview(id, userId);
-        //feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "ADD", id);
         return Map.of("Сообщение: ", "лайк успешно поставлен");
     }
 
@@ -79,7 +63,6 @@ public class ReviewService {
         reviewDbStorage.getReviewById(id);
         userService.getUserById(userId);
         reviewDbStorage.removeLikeFromReview(id, userId);
-        //feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "REMOVE", id);
         return Map.of("Сообщение: ", "лайк успешно удален");
     }
 
@@ -87,7 +70,6 @@ public class ReviewService {
         reviewDbStorage.getReviewById(id);
         userService.getUserById(userId);
         reviewDbStorage.removeDislikeFromReview(id, userId);
-        //feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "REMOVE", id);
         return Map.of("Сообщение: ", "дизлайк успешно удален");
     }
 
@@ -95,7 +77,6 @@ public class ReviewService {
         reviewDbStorage.getReviewById(id);
         userService.getUserById(userId);
         reviewDbStorage.addDislikeToReview(id, userId);
-        //feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "ADD", id);
         return Map.of("Сообщение: ", "дизлайк успешно поставлен");
     }
 
@@ -111,13 +92,10 @@ public class ReviewService {
         filmService.getFilmById(review.getFilmId());
         userService.getUserById(review.getUserId());
         reviewDbStorage.getReviewById(review.getReviewId());
-        try {
-            ReviewDto reviewDto = rowMapperReview.mapToReviewDto(reviewDbStorage.updateReview(review));
-            feedEventsDb.insertEvents(System.currentTimeMillis(), reviewDto.getUserId(), "REVIEW", "UPDATE",
-                    reviewDto.getReviewId());
-            return reviewDto;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        ReviewDto reviewDto = rowMapperReview.mapToReviewDto(reviewDbStorage.updateReview(review));
+        feedEventsDb.insertEvents(System.currentTimeMillis(), reviewDto.getUserId(), "REVIEW", "UPDATE",
+                reviewDto.getReviewId());
+        return reviewDto;
+
     }
 }

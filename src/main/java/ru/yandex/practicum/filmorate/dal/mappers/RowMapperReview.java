@@ -24,7 +24,7 @@ public class RowMapperReview implements RowMapper<Review> {
         return review;
     }
 
-    public ReviewDto mapToReviewDto(Review review) throws SQLException {
+    public ReviewDto mapToReviewDto(Review review) {
         ReviewDto reviewDto = new ReviewDto();
         reviewDto.setReviewId(review.getReviewId());
         reviewDto.setFilmId(review.getFilmId());

@@ -61,11 +61,6 @@ public class FilmService {
         return FilmMapper.mapToListFilmDto(filmStorage.getAllFilms());
     }
 
-    /*public Collection<FilmDto> getPopularGenreAndYear(Long count, Long genre, Long year) {
-        log.info("Получение популярных фильмов по годам и жанру");
-        return filmDbStorage.getPopularGenreAndYear(count, genre, year).stream().map(FilmMapper::mapToFilmDto).toList();
-    }*/
-
     public FilmDto getFilmById(long filmId) {
         log.info("Получение фильма с id {} успешно получен", filmId);
         Film film = filmStorage.getFilmById(filmId)

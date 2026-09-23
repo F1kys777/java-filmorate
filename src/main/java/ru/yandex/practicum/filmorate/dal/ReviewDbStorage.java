@@ -28,14 +28,14 @@ public class ReviewDbStorage {
     private final RowMapperReview rowMapperReview;
     private static final String INSERT_NEW_REVIEW = "INSERT INTO reviews(film_id, user_id, is_positive, content)" +
             "VALUES (?, ?, ?, ?)";
-    private static final String INSERT_NEW_LIKE = "INSERT INTO reviewRating(user_id, review_id, rating)" +
+    private static final String INSERT_NEW_LIKE = "INSERT INTO review_rating(user_id, review_id, rating)" +
             "VALUES (?, ?, 1)";
-    private static final String INSERT_NEW_DISLIKE = "INSERT INTO reviewRating(user_id, review_id, rating)" +
+    private static final String INSERT_NEW_DISLIKE = "INSERT INTO review_rating(user_id, review_id, rating)" +
             "VALUES (?, ?, -1)";
     private static final String FIND_REVIEW_BY_ID_QUERY = "SELECT * FROM reviews WHERE review_id = ?";
     private static final String FIND_REVIEWS_BY_FILM_ID = "SELECT * FROM reviews WHERE film_id = ? ORDER BY useful " +
             "DESC LIMIT ?";
-    private static final String FIND_REVIEW_RATING_BY_ID = "SELECT * FROM reviewRating WHERE user_id = ? AND " +
+    private static final String FIND_REVIEW_RATING_BY_ID = "SELECT * FROM review_rating WHERE user_id = ? AND " +
             "review_id = ?";
     private static final String UPDATE_REVIEW = "UPDATE reviews SET is_positive = ?, content = ? WHERE review_id = ?";
     private static final String UPDATE_REVIEW_AFTER_ADD_LIKE = "UPDATE reviews SET useful = useful + 1 WHERE" +
@@ -43,7 +43,7 @@ public class ReviewDbStorage {
     private static final String UPDATE_REVIEW_AFTER_ADD_DISLIKE = "UPDATE reviews SET useful = useful - 1 WHERE" +
             " review_id = ?";
     private static final String DELETE_REVIEW_BY_ID = "DELETE FROM reviews WHERE review_id = ?;";
-    private static final String DELETE_LIKE_FROM_REVIEW_RATING = "DELETE FROM reviewRating WHERE user_id = ? AND review_id = ?;";
+    private static final String DELETE_LIKE_FROM_REVIEW_RATING = "DELETE FROM review_rating WHERE user_id = ? AND review_id = ?;";
     private static final String FIND_ALL_REVIEWS_QUERY =
             "SELECT * FROM reviews ORDER BY useful DESC LIMIT ?";
 
@@ -155,10 +155,10 @@ public class ReviewDbStorage {
 
                 });
             } else {
-                throw new EmptyResultDataAccessException(1);
+                throw new EmptyResultDataAccessException("У пользователя нет лайка к отзыву с id: " + id, 1);
             }
         } catch (EmptyResultDataAccessException e) {
-            throw new NotFoundException("У пользователя нет лайка к отзыву с id: " + id);
+            throw new NotFoundException(e.getMessage());
         }
         jdbc.update(UPDATE_REVIEW_AFTER_ADD_DISLIKE, id);
     }
@@ -210,10 +210,10 @@ public class ReviewDbStorage {
 
                 });
             } else {
-                throw new EmptyResultDataAccessException(1);
+                throw new EmptyResultDataAccessException("У пользователя нет дизлайка к отзыву с id: " + id, 1);
             }
         } catch (EmptyResultDataAccessException e) {
-            throw new NotFoundException("У пользователя нет дизлайка к отзыву с id: " + id);
+            throw new NotFoundException(e.getMessage());
         }
         jdbc.update(UPDATE_REVIEW_AFTER_ADD_LIKE, id);
     }

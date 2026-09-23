@@ -10,8 +10,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.model.Genre;
 
-import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.util.*;
 
 @Repository
@@ -19,7 +17,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     private static final String FIND_ALL_QUERY = "SELECT * FROM films";
     private static final String DELETE_QUERY = "DELETE FROM films WHERE id = ?";
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM films WHERE id = ?";
-    private static final String FIND_POPULARS_FILMS = "SELECT f.id, f.name, f.description, f.release_date, f.duration, f.mpa_rating_id, COUNT(DISTINCT fl.user_id) AS likes FROM films f LEFT JOIN film_likes fl ON f.id = fl.film_id WHERE f.id IN (SELECT fg.film_id FROM film_genre fg WHERE fg.genre_id = ?) AND YEAR(f.release_date) = ? GROUP BY f.id, f.name, f.description, f.release_date, f.duration, f.mpa_rating_id ORDER BY likes DESC, f.id ASC LIMIT ?";
     private static final String INSERT_QUERY = "INSERT INTO films(name, description, release_date, duration, mpa_rating_id) VALUES (?, ?, ?, ?, ?)";
     private static final String UPDATE_QUERY = "UPDATE films SET name = ?, description = ?, release_date = ?, duration = ?, mpa_rating_id = ? WHERE id = ?";
     private static final String INSERT_GENRE_QUERY = "INSERT INTO film_genre (film_id, genre_id) VALUES (?, ?)";
@@ -28,7 +25,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     private static final String INSERT_LIKE_QUERY = "INSERT INTO film_likes (film_id, user_id) VALUES (?, ?)";
     private static final String DELETE_LIKE_QUERY = "DELETE FROM film_likes WHERE film_id = ? AND user_id = ?";
     private static final String SELECT_LIKES_QUERY = "SELECT user_id FROM film_likes WHERE film_id = ?";
-    private static final String SELECT_POPULAR_QUERY = "SELECT f.*, COUNT(l.user_id) AS like_count FROM films f LEFT JOIN film_likes l ON f.id = l.film_id GROUP BY f.id ORDER BY like_count DESC LIMIT ?";
     private static final String SELECT_MPA_QUERY = "SELECT mpa_rating_id FROM films WHERE id = ?";
     private static final String SELECT_COMMON_FRIEND_FILM_QUERY = "SELECT f.*, COUNT(l.user_id) AS like_count " +
             "FROM films f JOIN film_likes l ON f.id = l.film_id JOIN film_likes l1 ON f.id = l1.film_id " +
@@ -75,21 +71,19 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
                     "WHERE LOWER(f.name) LIKE LOWER(CONCAT('%', ?, '%')) " +
                     "GROUP BY f.id " +
                     "ORDER BY like_count DESC";
-    private static final String SEARCH_BY_DIRECTOR_QUERY =
-            "SELECT f.*, COUNT(l.user_id) AS like_count " +
-                    "FROM films f " +
-                    "JOIN film_director fd ON f.id = fd.film_id " +
-                    "JOIN directors d ON fd.director_id = d.id " +
-                    "LEFT JOIN film_likes l ON f.id = l.film_id " +
-                    "WHERE LOWER(d.name) LIKE LOWER(CONCAT('%', ?, '%')) " +
-                    "GROUP BY f.id " +
-                    "ORDER BY like_count DESC";
-    private static final String SEARCH_BY_TITLE_OR_DIRECTOR_QUERY =
+
+    private static final String BASE_FILMS_QUERY =
             "SELECT f.*, COUNT(l.user_id) AS like_count " +
                     "FROM films f " +
                     "LEFT JOIN film_director fd ON f.id = fd.film_id " +
                     "LEFT JOIN directors d ON fd.director_id = d.id " +
-                    "LEFT JOIN film_likes l ON f.id = l.film_id " +
+                    "LEFT JOIN film_likes l ON f.id = l.film_id ";
+
+    private static final String SEARCH_BY_DIRECTOR_QUERY =
+                    "WHERE LOWER(d.name) LIKE LOWER(CONCAT('%', ?, '%')) " +
+                    "GROUP BY f.id " +
+                    "ORDER BY like_count DESC";
+    private static final String SEARCH_BY_TITLE_OR_DIRECTOR_QUERY =
                     "WHERE LOWER(f.name) LIKE LOWER(CONCAT('%', ?, '%')) " +
                     "   OR LOWER(d.name) LIKE LOWER(CONCAT('%', ?, '%')) " +
                     "GROUP BY f.id " +
@@ -194,16 +188,9 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         return films;
     }
 
+    @Override
     public void addLike(long filmId, long userId) {
-        jdbc.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(
-                    INSERT_LIKE_QUERY,
-                    Statement.RETURN_GENERATED_KEYS
-            );
-            ps.setLong(1, filmId);
-            ps.setLong(2, userId);
-            return ps;
-        });
+        jdbc.update(INSERT_LIKE_QUERY, filmId, userId);
     }
 
     @Override
@@ -255,11 +242,11 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
         List<Film> films;
         if (byTitle && byDirector) {
-            films = jdbc.query(SEARCH_BY_TITLE_OR_DIRECTOR_QUERY, mapper, query, query);
+            films = jdbc.query(BASE_FILMS_QUERY + SEARCH_BY_TITLE_OR_DIRECTOR_QUERY, mapper, query, query);
         } else if (byTitle) {
             films = jdbc.query(SEARCH_BY_TITLE_QUERY, mapper, query);
         } else if (byDirector) {
-            films = jdbc.query(SEARCH_BY_DIRECTOR_QUERY, mapper, query);
+            films = jdbc.query(BASE_FILMS_QUERY + SEARCH_BY_DIRECTOR_QUERY, mapper, query);
         } else {
             return List.of();
         }
@@ -297,9 +284,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         film.setDirectors(new LinkedHashSet<>(directors));
     }
 
-    public List<Film> getPopularGenreAndYear(Long count, Long genreId, Long year) {
-        return getPopularFilms(count.intValue(), genreId, year);
-    }
 
     @Override
     public List<Film> getRecommendations(long userId) {

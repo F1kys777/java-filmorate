@@ -71,7 +71,7 @@ public class ReviewService {
         reviewDbStorage.getReviewById(id);
         userService.getUserById(userId);
         reviewDbStorage.addLikeToReview(id, userId);
-        feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "ADD", id);
+        //feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "ADD", id);
         return Map.of("Сообщение: ", "лайк успешно поставлен");
     }
 
@@ -79,7 +79,7 @@ public class ReviewService {
         reviewDbStorage.getReviewById(id);
         userService.getUserById(userId);
         reviewDbStorage.removeLikeFromReview(id, userId);
-        feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "REMOVE", id);
+        //feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "REMOVE", id);
         return Map.of("Сообщение: ", "лайк успешно удален");
     }
 
@@ -87,7 +87,7 @@ public class ReviewService {
         reviewDbStorage.getReviewById(id);
         userService.getUserById(userId);
         reviewDbStorage.removeDislikeFromReview(id, userId);
-        feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "REMOVE", id);
+        //feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "REMOVE", id);
         return Map.of("Сообщение: ", "дизлайк успешно удален");
     }
 
@@ -95,15 +95,15 @@ public class ReviewService {
         reviewDbStorage.getReviewById(id);
         userService.getUserById(userId);
         reviewDbStorage.addDislikeToReview(id, userId);
-        feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "ADD", id);
+        //feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "ADD", id);
         return Map.of("Сообщение: ", "дизлайк успешно поставлен");
     }
 
     public Map<String, String> deleteReviewById(Long id) {
         ReviewDto reviewDto = getReviewById(id);
         reviewDbStorage.deleteReviewById(id);
-        feedEventsDb.insertEvents(System.currentTimeMillis(), reviewDto.getUserId(), "REVIEW", "REMOVE",
-                reviewDto.getReviewId());
+        feedEventsDb.insertEvents(System.currentTimeMillis(), reviewDto.getReviewId(), "REVIEW", "REMOVE",
+                reviewDto.getFilmId());
         return Map.of("Сообщение: ", "отзыв успешно удален");
     }
 

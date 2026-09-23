@@ -138,6 +138,7 @@ public class FilmService {
         if (film.getLikes().contains(userId)) {
             log.info("Лайк пользователя {} фильму {} уже существует — повторный вызов проигнорирован",
                     userId, filmId);
+            feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "ADD", filmId);
             return;
         }
         log.info("Фильм с id {} получил лайк от пользователя {}", film, userId);

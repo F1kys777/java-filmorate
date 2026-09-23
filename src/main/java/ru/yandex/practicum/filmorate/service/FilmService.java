@@ -136,7 +136,9 @@ public class FilmService {
             throw new NotFoundException("Пользователь с id=" + userId + " не найден");
         }
         if (film.getLikes().contains(userId)) {
-            throw new ValidationException("Пользователь уже ставил лайк этому фильму");
+            log.info("Лайк пользователя {} фильму {} уже существует — повторный вызов проигнорирован",
+                    userId, filmId);
+            return;
         }
         log.info("Фильм с id {} получил лайк от пользователя {}", film, userId);
         filmStorage.addLike(filmId, userId);

@@ -119,6 +119,8 @@ public class FilmService {
         }
         if (request.getDirectors() != null) {
             film.setDirectors(resolveDirectors(request.getDirectors()));
+        } else {
+            film.setDirectors(new LinkedHashSet<>());
         }
 
         Film updated = filmStorage.updateFilm(filmId, film);

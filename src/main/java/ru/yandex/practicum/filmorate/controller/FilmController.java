@@ -65,10 +65,7 @@ public class FilmController {
 
         log.debug("Запрос популярных фильмов: count={}, genreId={}, year={}", count, genreId, year);
 
-        if (genreId != null && year != null) {
-            return filmService.getPopularGenreAndYear((long) count, genreId, year);
-        }
-        return filmService.getPopularFilms(count);
+        return filmService.getPopularFilms(count, genreId, year);
     }
 
     @GetMapping("/director/{directorId}")

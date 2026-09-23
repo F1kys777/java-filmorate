@@ -15,6 +15,7 @@ public class DirectorDbStorage extends BaseRepository<Director> {
     private static final String INSERT_QUERY = "INSERT INTO directors(name) VALUES (?)";
     private static final String UPDATE_QUERY = "UPDATE directors SET name = ? WHERE id = ?";
     private static final String DELETE_QUERY = "DELETE FROM directors WHERE id = ?";
+    private static final String DELETE_FILM_DIRECTOR_QUERY = "DELETE FROM film_director WHERE director_id = ?";
 
     public DirectorDbStorage(JdbcTemplate jdbc, DirectorRowMapper mapper) {
         super(jdbc, mapper);
@@ -40,6 +41,7 @@ public class DirectorDbStorage extends BaseRepository<Director> {
     }
 
     public void remove(long id) {
+        jdbc.update(DELETE_FILM_DIRECTOR_QUERY, id);
         update(DELETE_QUERY, id);
     }
 }

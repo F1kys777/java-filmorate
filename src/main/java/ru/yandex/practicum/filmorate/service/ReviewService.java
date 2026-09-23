@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.dal.mappers.RowMapperReview;
 import ru.yandex.practicum.filmorate.dto.NewReviewRequest;
 import ru.yandex.practicum.filmorate.dto.ReviewDto;
 import ru.yandex.practicum.filmorate.dto.UpdateReviewRequest;
+import ru.yandex.practicum.filmorate.model.Review;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -29,7 +30,7 @@ public class ReviewService {
         userService.getUserById(review.getUserId());
         try {
             ReviewDto reviewDto = rowMapperReview.mapToReviewDto(reviewDbStorage.addReview(review));
-            feedEventsDb.insertEvents(System.currentTimeMillis(), review.getUserId(), "REVIEW", "ADD",
+            feedEventsDb.insertEvents(System.currentTimeMillis(), reviewDto.getUserId(), "REVIEW", "ADD",
                     reviewDto.getReviewId());
             return reviewDto;
         } catch (SQLException e) {
@@ -46,8 +47,16 @@ public class ReviewService {
     }
 
     public List<ReviewDto> getReviewsById(Long filmId, Long count) {
-        filmService.getFilmById(filmId);
-        return reviewDbStorage.getReviewsById(filmId, count).stream()
+        List<Review> reviews;
+
+        if (filmId == null) {
+            reviews = reviewDbStorage.getAllReviews(count);
+        } else {
+            filmService.getFilmById(filmId);
+            reviews = reviewDbStorage.getReviewsById(filmId, count);
+        }
+
+        return reviews.stream()
                 .map(review -> {
                     try {
                         return rowMapperReview.mapToReviewDto(review);
@@ -62,6 +71,7 @@ public class ReviewService {
         reviewDbStorage.getReviewById(id);
         userService.getUserById(userId);
         reviewDbStorage.addLikeToReview(id, userId);
+        //feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "ADD", id);
         return Map.of("Сообщение: ", "лайк успешно поставлен");
     }
 
@@ -69,6 +79,7 @@ public class ReviewService {
         reviewDbStorage.getReviewById(id);
         userService.getUserById(userId);
         reviewDbStorage.removeLikeFromReview(id, userId);
+        //feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "REMOVE", id);
         return Map.of("Сообщение: ", "лайк успешно удален");
     }
 
@@ -76,6 +87,7 @@ public class ReviewService {
         reviewDbStorage.getReviewById(id);
         userService.getUserById(userId);
         reviewDbStorage.removeDislikeFromReview(id, userId);
+        //feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "REMOVE", id);
         return Map.of("Сообщение: ", "дизлайк успешно удален");
     }
 
@@ -83,14 +95,15 @@ public class ReviewService {
         reviewDbStorage.getReviewById(id);
         userService.getUserById(userId);
         reviewDbStorage.addDislikeToReview(id, userId);
+        //feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "ADD", id);
         return Map.of("Сообщение: ", "дизлайк успешно поставлен");
     }
 
     public Map<String, String> deleteReviewById(Long id) {
         ReviewDto reviewDto = getReviewById(id);
         reviewDbStorage.deleteReviewById(id);
-        feedEventsDb.insertEvents(System.currentTimeMillis(), reviewDto.getUserId(), "REVIEW", "REMOVE",
-                reviewDto.getReviewId());
+        feedEventsDb.insertEvents(System.currentTimeMillis(), reviewDto.getReviewId(), "REVIEW", "REMOVE",
+                reviewDto.getFilmId());
         return Map.of("Сообщение: ", "отзыв успешно удален");
     }
 
@@ -100,7 +113,7 @@ public class ReviewService {
         reviewDbStorage.getReviewById(review.getReviewId());
         try {
             ReviewDto reviewDto = rowMapperReview.mapToReviewDto(reviewDbStorage.updateReview(review));
-            feedEventsDb.insertEvents(System.currentTimeMillis(), review.getUserId(), "REVIEW", "UPDATE",
+            feedEventsDb.insertEvents(System.currentTimeMillis(), reviewDto.getUserId(), "REVIEW", "UPDATE",
                     reviewDto.getReviewId());
             return reviewDto;
         } catch (SQLException e) {

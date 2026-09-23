@@ -16,8 +16,11 @@ public class FeedEventsDb {
     private static final String INSERT_EVENTS = "INSERT INTO FeedEvents(timestamp, user_id, event_type, " +
             "operation, entity_id) VALUES (?, ?, ?, ?, ?)";
 
-    private static final String GET_EVENTS = "SELECT fe.* FROM FeedEvents fe WHERE fe.USER_ID = ? ORDER BY fe" +
-            ".TIMESTAMP ASC";
+    private static final String GET_EVENTS = """
+    SELECT fe.*
+        FROM FeedEvents fe
+        WHERE fe.user_id = ?
+        ORDER BY fe.timestamp ASC, fe.event_id ASC""";
 
     public void insertEvents(Long timestamp, Long userId, String eventType, String operation, Long entityId) {
         jdbc.update(INSERT_EVENTS, timestamp, userId, eventType, operation, entityId);

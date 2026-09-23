@@ -212,8 +212,30 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopularFilms(int count) {
-        List<Film> films = jdbc.query(SELECT_POPULAR_QUERY, mapper, count);
+    public List<Film> getPopularFilms(int count, Long genreId, Long year) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT f.*, COUNT(DISTINCT fl.user_id) AS like_count " +
+                        "FROM films f " +
+                        "LEFT JOIN film_likes fl ON f.id = fl.film_id ");
+        List<Object> params = new ArrayList<>();
+
+        if (genreId != null) {
+            sql.append("JOIN film_genre fg ON f.id = fg.film_id ");
+        }
+        sql.append("WHERE 1=1 ");
+        if (genreId != null) {
+            sql.append("AND fg.genre_id = ? ");
+            params.add(genreId);
+        }
+        if (year != null) {
+            sql.append("AND YEAR(f.release_date) = ? ");
+            params.add(year);
+        }
+        sql.append("GROUP BY f.id, f.name, f.description, f.release_date, f.duration, f.mpa_rating_id ");
+        sql.append("ORDER BY like_count DESC, f.id ASC LIMIT ?");
+        params.add(count);
+
+        List<Film> films = jdbc.query(sql.toString(), mapper, params.toArray());
         films.forEach(this::enrichFilm);
         return films;
     }
@@ -246,6 +268,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         return films;
     }
 
+    @Override
     public List<Film> getCommonFriendsFilms(long userId, long friendId) {
         List<Film> films = jdbc.query(SELECT_COMMON_FRIEND_FILM_QUERY, mapper, userId, friendId);
         for (Film film : films) {
@@ -275,7 +298,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     }
 
     public List<Film> getPopularGenreAndYear(Long count, Long genreId, Long year) {
-        return jdbc.query(FIND_POPULARS_FILMS, new FilmRowMapper(), genreId, year, count);
+        return getPopularFilms(count.intValue(), genreId, year);
     }
 
     @Override

@@ -34,6 +34,7 @@ public class UserService {
     }
 
     public Collection<FeedEventsDto> getFeedsFriends(Long userId) {
+        getUserById(userId);
         return feedEventsDb.getEvents(userId);
     }
 

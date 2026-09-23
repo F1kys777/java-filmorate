@@ -61,10 +61,10 @@ public class FilmService {
         return FilmMapper.mapToListFilmDto(filmStorage.getAllFilms());
     }
 
-    public Collection<FilmDto> getPopularGenreAndYear(Long count, Long genre, Long year) {
+    /*public Collection<FilmDto> getPopularGenreAndYear(Long count, Long genre, Long year) {
         log.info("Получение популярных фильмов по годам и жанру");
         return filmDbStorage.getPopularGenreAndYear(count, genre, year).stream().map(FilmMapper::mapToFilmDto).toList();
-    }
+    }*/
 
     public FilmDto getFilmById(long filmId) {
         log.info("Получение фильма с id {} успешно получен", filmId);
@@ -114,11 +114,13 @@ public class FilmService {
         if (request.getMpa() != null) {
             film.setMpaRating(request.getMpa());
         }
-        if (request.getGenres() != null && !request.getGenres().isEmpty()) {
+        if (request.getGenres() != null) {
             film.setGenres(request.getGenres());
         }
         if (request.getDirectors() != null) {
             film.setDirectors(resolveDirectors(request.getDirectors()));
+        } else {
+            film.setDirectors(new LinkedHashSet<>());
         }
 
         Film updated = filmStorage.updateFilm(filmId, film);
@@ -134,7 +136,10 @@ public class FilmService {
             throw new NotFoundException("Пользователь с id=" + userId + " не найден");
         }
         if (film.getLikes().contains(userId)) {
-            throw new ValidationException("Пользователь уже ставил лайк этому фильму");
+            log.info("Лайк пользователя {} фильму {} уже существует — повторный вызов проигнорирован",
+                    userId, filmId);
+            feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "ADD", filmId);
+            return;
         }
         log.info("Фильм с id {} получил лайк от пользователя {}", film, userId);
         filmStorage.addLike(filmId, userId);
@@ -151,10 +156,10 @@ public class FilmService {
         feedEventsDb.insertEvents(System.currentTimeMillis(), userId, "LIKE", "REMOVE", filmId);
     }
 
-    public List<FilmDto> getPopularFilms(int count) {
+    public List<FilmDto> getPopularFilms(int count, Long genreId, Long year) {
         validator.filmCountValidation(count);
         log.info("Получение списка из {} популярных фильмов", count);
-        List<Film> films = filmStorage.getPopularFilms(count);
+        List<Film> films = filmStorage.getPopularFilms(count, genreId, year);
         return FilmMapper.mapToListFilmDto(films);
     }
 

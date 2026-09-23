@@ -23,15 +23,16 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
             " login = ?, birthday = ? WHERE id = ?";
     private static final String FRIENDSHIP_QUERY = "SELECT friend_id FROM friendship WHERE user_id = ?" +
             " AND status = 'CONFIRMED'";
-    private static final String FRIEND_ADD_QUERY = "INSERT INTO friendship (user_id, friend_id, status)" +
-            " VALUES (?, ?, ?)";
-    private static final String FRIEND_REMOVE_QUERY = "DELETE FROM friendship WHERE user_id = ? AND friend_id = ?";
-    private static final String FIND_FRIENDS_QUERY = "SELECT u.* FROM users u JOIN friendship f ON u.id = f.friend_id" +
-            " WHERE f.user_id = ? AND f.status = 'CONFIRMED'";
-    private static final String COMMON_FRIENDS_QUERY = "SELECT u.* FROM users u JOIN friendship f1 ON" +
-            " u.id = f1.friend_id JOIN friendship f2 ON u.id = f2.friend_id WHERE f1.user_id = ? AND f2.user_id = ? " +
+    private static final String FRIEND_ADD_QUERY = "MERGE INTO friendship (user_id, friend_id, status) KEY (user_id, friend_id) VALUES (?, ?, ?)";
+    private static final String FRIEND_REMOVE_QUERY = "UPDATE friendship SET status = 'REMOVED' WHERE user_id = ? AND friend_id = ?";
+    private static final String FIND_FRIENDS_QUERY = "SELECT u.* FROM users u JOIN friendship f ON u.id = f.friend_id " +
+            "WHERE f.user_id = ? AND f.status = 'CONFIRMED'";
+    private static final String COMMON_FRIENDS_QUERY = "SELECT u.* FROM users u " +
+            "JOIN friendship f1 ON u.id = f1.friend_id " +
+            "JOIN friendship f2 ON u.id = f2.friend_id " +
+            "WHERE f1.user_id = ? AND f2.user_id = ? " +
             "AND f1.status = 'CONFIRMED' AND f2.status = 'CONFIRMED'";
-    private static final String FIND_FRIENDSHIP_QUERY = "SELECT * FROM friendship WHERE user_id = ? AND friend_id = ?";
+    private static final String FIND_FRIENDSHIP_QUERY = "SELECT friend_id FROM friendship WHERE user_id = ? AND status = 'CONFIRMED'";
 
     public UserDbStorage(JdbcTemplate jdbc, UserRowMapper mapper) {
         super(jdbc, mapper);

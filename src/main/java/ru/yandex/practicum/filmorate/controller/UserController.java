@@ -2,10 +2,13 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.dto.FeedEventsDto;
 import ru.yandex.practicum.filmorate.dto.NewUserRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import java.util.Collection;
 import java.util.List;
@@ -16,9 +19,11 @@ import java.util.List;
 @Slf4j
 public class UserController {
     private final UserService userService;
+    private final FilmService filmService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, FilmService filmService) {
         this.userService = userService;
+        this.filmService = filmService;
     }
 
     @GetMapping
@@ -63,6 +68,12 @@ public class UserController {
         return userService.getFriends(id);
     }
 
+    @GetMapping("/{id}/feed")
+    public Collection<FeedEventsDto> getFeeds(@PathVariable long id) {
+        log.debug("Запрос на получение ленты событий всех друзей пользователя с id {}", id);
+        return userService.getFeedsFriends(id);
+    }
+
     @GetMapping("/{id}/friends/common/{otherId}")
     public List<UserDto> getCommonFriends(@PathVariable long id, @PathVariable long otherId) {
         log.debug("Запрос на получение общих друзей пользователей с id {} и id {}", id, otherId);
@@ -75,5 +86,17 @@ public class UserController {
             throw new ValidationException("Id должен быть указан");
         }
         return userService.update(request.getId(), request);
+    }
+
+    @DeleteMapping("/{userId}")
+    public void remove(@PathVariable long userId) {
+        log.debug("Запрос на удаление пользователя с id {}", userId);
+        userService.remove(userId);
+    }
+
+    @GetMapping("/{id}/recommendations")
+    public List<FilmDto> getRecommendations(@PathVariable long id) {
+        log.debug("Запрос рекомендаций для пользователя {}", id);
+        return filmService.getRecommendations(id);
     }
 }

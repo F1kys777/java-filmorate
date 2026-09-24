@@ -58,9 +58,28 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<FilmDto> getPopular(@RequestParam(defaultValue = "10") int count) {
-        log.debug("Запрос на получение списка популярных фильмов со значение count {}", count);
-        return filmService.getPopularFilms(count);
+    public Collection<FilmDto> getPopular(
+            @RequestParam(defaultValue = "1000") int count,
+            @RequestParam(required = false) Long genreId,
+            @RequestParam(required = false) Long year) {
+
+        log.debug("Запрос популярных фильмов: count={}, genreId={}, year={}", count, genreId, year);
+
+        return filmService.getPopularFilms(count, genreId, year);
+    }
+
+    @GetMapping("/director/{directorId}")
+    public List<FilmDto> getFilmsByDirector(@PathVariable long directorId,
+                                            @RequestParam String sortBy) {
+        log.debug("Запрос фильмов режиссёра id={}, сортировка {}", directorId, sortBy);
+        return filmService.getFilmsByDirector(directorId, sortBy);
+    }
+
+    @GetMapping("/search")
+    public List<FilmDto> search(@RequestParam String query,
+                                @RequestParam(defaultValue = "title") String by) {
+        log.debug("Поиск фильмов: query={}, by={}", query, by);
+        return filmService.searchFilms(query, by);
     }
 
     @PutMapping
@@ -69,5 +88,17 @@ public class FilmController {
             throw new ValidationException("Id должен быть указан");
         }
         return filmService.update(request.getId(), request);
+    }
+
+    @GetMapping("/common")
+    public List<FilmDto> getCommonFriendsFilms(@RequestParam long userId, @RequestParam long friendId) {
+        log.debug("Запрос на получение списка общих фильмов {} и {}", userId, friendId);
+        return filmService.getCommonFriendsFilms(userId, friendId);
+    }
+
+    @DeleteMapping("/{filmId}")
+    public void remove(@PathVariable long filmId) {
+        log.debug("Запрос на удаление фильма с id {}", filmId);
+        filmService.remove(filmId);
     }
 }
